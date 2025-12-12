@@ -1,0 +1,206 @@
+import { Event } from '../types/event';
+import { User } from '../App';
+
+export const mockUsers: User[] = [
+  {
+    id: '1',
+    name: 'Alex Johnson',
+    email: 'alex.johnson@university.edu',
+    role: 'student',
+    college: 'Tech University',
+    skills: ['JavaScript', 'React', 'Python', 'Machine Learning'],
+    interests: ['AI', 'Web Development', 'Data Science'],
+    year: '3rd Year'
+  },
+  {
+    id: '2',
+    name: 'Sarah Chen',
+    email: 'sarah.chen@university.edu',
+    role: 'organizer',
+    college: 'Tech University'
+  },
+  {
+    id: '3',
+    name: 'Michael Brown',
+    email: 'michael.brown@university.edu',
+    role: 'admin',
+    college: 'Tech University'
+  }
+];
+
+export const mockEvents: Event[] = [
+  {
+    id: '1',
+    title: 'AI & Machine Learning Workshop',
+    description: 'Hands-on workshop covering neural networks, deep learning, and practical ML applications using Python and TensorFlow.',
+    category: 'Workshop',
+    date: '2025-01-15',
+    time: '10:00 AM',
+    location: 'Computer Science Building, Room 301',
+    organizer: 'Tech University AI Club',
+    college: 'Tech University',
+    eligibility: ['2nd Year', '3rd Year', '4th Year'],
+    skills: ['Python', 'Machine Learning', 'Data Science'],
+    maxParticipants: 50,
+    currentParticipants: 32,
+    registrationDeadline: '2025-01-10',
+    status: 'upcoming'
+  },
+  {
+    id: '2',
+    title: 'Hackathon 2025: Build the Future',
+    description: '48-hour coding marathon to solve real-world problems. Form teams, build innovative solutions, and win exciting prizes!',
+    category: 'Hackathon',
+    date: '2025-01-20',
+    time: '9:00 AM',
+    location: 'Student Center Arena',
+    organizer: 'University Innovation Lab',
+    college: 'Tech University',
+    eligibility: ['All Years'],
+    skills: ['JavaScript', 'React', 'Node.js', 'Python'],
+    maxParticipants: 200,
+    currentParticipants: 156,
+    registrationDeadline: '2025-01-18',
+    status: 'upcoming'
+  },
+  {
+    id: '3',
+    title: 'Career Fair: Tech Giants Meet Students',
+    description: 'Meet recruiters from top tech companies. Bring your resume and portfolio. On-spot interviews available.',
+    category: 'Career Fair',
+    date: '2025-01-25',
+    time: '1:00 PM',
+    location: 'Main Campus Hall',
+    organizer: 'Career Services Department',
+    college: 'Tech University',
+    eligibility: ['3rd Year', '4th Year'],
+    skills: [],
+    maxParticipants: 300,
+    currentParticipants: 245,
+    registrationDeadline: '2025-01-23',
+    status: 'upcoming'
+  },
+  {
+    id: '4',
+    title: 'Web Development Bootcamp',
+    description: 'Learn modern web development from scratch. Topics include HTML, CSS, JavaScript, React, and backend fundamentals.',
+    category: 'Workshop',
+    date: '2025-02-01',
+    time: '2:00 PM',
+    location: 'Engineering Building, Lab 2',
+    organizer: 'Web Dev Society',
+    college: 'Tech University',
+    eligibility: ['1st Year', '2nd Year'],
+    skills: ['JavaScript', 'React', 'HTML', 'CSS'],
+    maxParticipants: 40,
+    currentParticipants: 28,
+    registrationDeadline: '2025-01-28',
+    status: 'upcoming'
+  },
+  {
+    id: '5',
+    title: 'Data Science Symposium',
+    description: 'Industry experts share insights on data analytics, visualization, and predictive modeling. Networking session included.',
+    category: 'Seminar',
+    date: '2025-02-05',
+    time: '11:00 AM',
+    location: 'Auditorium A',
+    organizer: 'Data Science Club',
+    college: 'Tech University',
+    eligibility: ['All Years'],
+    skills: ['Python', 'Data Science', 'Statistics'],
+    maxParticipants: 100,
+    currentParticipants: 67,
+    registrationDeadline: '2025-02-03',
+    status: 'upcoming'
+  },
+  {
+    id: '6',
+    title: 'Cybersecurity Challenges',
+    description: 'Test your security skills through CTF challenges, penetration testing exercises, and security audits.',
+    category: 'Competition',
+    date: '2025-02-10',
+    time: '3:00 PM',
+    location: 'Security Lab',
+    organizer: 'CyberSec Society',
+    college: 'Tech University',
+    eligibility: ['2nd Year', '3rd Year', '4th Year'],
+    skills: ['Cybersecurity', 'Linux', 'Networking'],
+    maxParticipants: 60,
+    currentParticipants: 42,
+    registrationDeadline: '2025-02-08',
+    status: 'upcoming'
+  },
+  {
+    id: '7',
+    title: 'Mobile App Development Sprint',
+    description: 'Build cross-platform mobile apps using React Native. From concept to deployment in one weekend.',
+    category: 'Workshop',
+    date: '2025-02-15',
+    time: '10:00 AM',
+    location: 'Innovation Hub',
+    organizer: 'Mobile Dev Club',
+    college: 'Tech University',
+    eligibility: ['All Years'],
+    skills: ['JavaScript', 'React', 'Mobile Development'],
+    maxParticipants: 35,
+    currentParticipants: 24,
+    registrationDeadline: '2025-02-12',
+    status: 'upcoming'
+  },
+  {
+    id: '8',
+    title: 'UI/UX Design Masterclass',
+    description: 'Learn design thinking, prototyping, and user research. Create stunning interfaces that users love.',
+    category: 'Workshop',
+    date: '2025-02-20',
+    time: '1:00 PM',
+    location: 'Design Studio',
+    organizer: 'Design Collective',
+    college: 'Tech University',
+    eligibility: ['All Years'],
+    skills: ['UI/UX Design', 'Figma', 'Design Thinking'],
+    maxParticipants: 30,
+    currentParticipants: 22,
+    registrationDeadline: '2025-02-18',
+    status: 'upcoming'
+  }
+];
+
+export const allSkills = [
+  'JavaScript',
+  'Python',
+  'React',
+  'Node.js',
+  'Machine Learning',
+  'Data Science',
+  'Java',
+  'C++',
+  'HTML',
+  'CSS',
+  'Mobile Development',
+  'UI/UX Design',
+  'Cybersecurity',
+  'Cloud Computing',
+  'Docker',
+  'Kubernetes',
+  'SQL',
+  'MongoDB',
+  'Git',
+  'Agile',
+  'Figma',
+  'Design Thinking',
+  'Statistics',
+  'Linux',
+  'Networking'
+];
+
+export const categories = [
+  'All',
+  'Workshop',
+  'Hackathon',
+  'Seminar',
+  'Competition',
+  'Career Fair',
+  'Networking'
+];

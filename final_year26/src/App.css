@@ -1,0 +1,27 @@
+/* App-specific styles - use Tailwind for most styling */
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Utility classes for common patterns */
+.animate-progress {
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0%, 100% {
+    width: 0%;
+  }
+  50% {
+    width: 100%;
+  }
+}
+
