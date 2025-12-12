@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 
-// Placeholder exports for backward compatibility
-export const User = {}
-export const UserRole = {}
+// Auth Context
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 // Authentication
 import { LoginPage } from './components/LoginPage'
@@ -33,138 +32,181 @@ import { UserProfilePage } from './pages/User/Profile'
 // Legacy components (for backward compatibility)
 import { StudentDashboard } from './components/StudentDashboard'
 
-function App() {
-  const [user, setUser] = useState(null)
+// Protected Route Component
+function ProtectedRoute({ children, requiredRole }) {
+  const { isAuthenticated, user, isLoading } = useAuth();
 
-  const handleLogin = (u) => setUser(u)
-  const handleLogout = () => setUser(null)
-
-  // Not logged in
-  if (!user) {
-    return <LoginPage onLogin={handleLogin} />
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
-  // Role-based routing with layouts
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
+// Main App Routes Component
+function AppRoutes() {
+  const { user } = useAuth();
+
   return (
     <Router>
       <Routes>
         {/* Admin Routes */}
-        {user.role === 'admin' && (
+        {user?.role === 'admin' && (
           <>
             <Route
               path="/dashboard"
               element={
-                <AdminLayout user={user} onLogout={handleLogout}>
-                  <AdminDashboardPage />
-                </AdminLayout>
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout>
+                    <AdminDashboardPage />
+                  </AdminLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/organizations"
               element={
-                <AdminLayout user={user} onLogout={handleLogout}>
-                  <AdminOrganizationsPage />
-                </AdminLayout>
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout>
+                    <AdminOrganizationsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/users"
               element={
-                <AdminLayout user={user} onLogout={handleLogout}>
-                  <AdminUsersPage />
-                </AdminLayout>
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout>
+                    <AdminUsersPage />
+                  </AdminLayout>
+                </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>
         )}
 
         {/* Organizer Routes */}
-        {user.role === 'organizer' && (
+        {user?.role === 'organizer' && (
           <>
             <Route
               path="/dashboard"
               element={
-                <OrganizerLayout user={user} onLogout={handleLogout}>
-                  <OrganizerDashboardPage />
-                </OrganizerLayout>
+                <ProtectedRoute requiredRole="organizer">
+                  <OrganizerLayout>
+                    <OrganizerDashboardPage />
+                  </OrganizerLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/organizer/events"
               element={
-                <OrganizerLayout user={user} onLogout={handleLogout}>
-                  <OrganizerEventsPage />
-                </OrganizerLayout>
+                <ProtectedRoute requiredRole="organizer">
+                  <OrganizerLayout>
+                    <OrganizerEventsPage />
+                  </OrganizerLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/organizer/members/requests"
               element={
-                <OrganizerLayout user={user} onLogout={handleLogout}>
-                  <OrganizerMembersPage />
-                </OrganizerLayout>
+                <ProtectedRoute requiredRole="organizer">
+                  <OrganizerLayout>
+                    <OrganizerMembersPage />
+                  </OrganizerLayout>
+                </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>
         )}
 
         {/* User/Student Routes */}
-        {user.role === 'student' && (
+        {user?.role === 'student' && (
           <>
             <Route
               path="/dashboard"
               element={
-                <UserLayout user={user} onLogout={handleLogout}>
-                  <UserDashboardPage />
-                </UserLayout>
+                <ProtectedRoute requiredRole="student">
+                  <UserLayout>
+                    <UserDashboardPage />
+                  </UserLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/user/recommended"
               element={
-                <UserLayout user={user} onLogout={handleLogout}>
-                  <UserRecommendedPage />
-                </UserLayout>
+                <ProtectedRoute requiredRole="student">
+                  <UserLayout>
+                    <UserRecommendedPage />
+                  </UserLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/user/events"
               element={
-                <UserLayout user={user} onLogout={handleLogout}>
-                  <UserEventsPage />
-                </UserLayout>
+                <ProtectedRoute requiredRole="student">
+                  <UserLayout>
+                    <UserEventsPage />
+                  </UserLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/user/my-events"
               element={
-                <UserLayout user={user} onLogout={handleLogout}>
-                  <StudentDashboard user={user} onLogout={handleLogout} />
-                </UserLayout>
+                <ProtectedRoute requiredRole="student">
+                  <UserLayout>
+                    <StudentDashboard />
+                  </UserLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/user/profile"
               element={
-                <UserLayout user={user} onLogout={handleLogout}>
-                  <UserProfilePage />
-                </UserLayout>
+                <ProtectedRoute requiredRole="student">
+                  <UserLayout>
+                    <UserProfilePage />
+                  </UserLayout>
+                </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>
         )}
 
-        {/* Fallback */}
+        {/* Default redirect based on role */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Fallback for unknown routes */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+// Main App Component
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
+}
+
+export default App;
