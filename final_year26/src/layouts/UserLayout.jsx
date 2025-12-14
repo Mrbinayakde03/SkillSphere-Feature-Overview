@@ -1,9 +1,13 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Header } from '../components/shared/Header';
+import { Header } from '../components/Header';
 import { Sidebar } from '../components/shared/Sidebar';
 import { Footer } from '../components/shared/Footer';
+
 import { useAuth } from '../contexts/AuthContext';
+import '../styles/UserRequested.css';
+import '../styles/Layout.css';
 
 const layoutVariants = {
   hidden: { opacity: 0 },
