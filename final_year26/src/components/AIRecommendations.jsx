@@ -55,7 +55,7 @@ export function AIRecommendations({ userSkills, registeredEvents, onRegister }) 
         </p>
         <button
           onClick={() => {}}
-          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-shadow"
+          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-text-primary rounded-lg hover:shadow-lg transition-shadow"
         >
           Add Skills to Get Started
         </button>
@@ -68,7 +68,7 @@ export function AIRecommendations({ userSkills, registeredEvents, onRegister }) 
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 mb-8 border border-green-200">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-6 h-6 text-white" />
+            <Sparkles className="w-6 h-6 text-text-primary" />
           </div>
           <div className="flex-1">
             <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">

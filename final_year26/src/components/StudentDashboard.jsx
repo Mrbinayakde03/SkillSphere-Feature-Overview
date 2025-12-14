@@ -1,5 +1,5 @@
+
 import { useState } from 'react';
-import { User } from '../App';
 import { mockEvents } from '../data/mockData';
 import { EventCard } from './EventCard';
 import { EventFilters } from './EventFilters';
@@ -49,24 +49,24 @@ export function StudentDashboard({ user, onLogout }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg-primary text-text-primary">
       <Header user={user} onLogout={onLogout} />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* User Profile Card */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 mb-8 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-blue-200 to-sky-200 rounded-2xl p-8 mb-8 text-text-primary shadow-lg">
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-3xl font-bold mb-2">Welcome back, {user.name}!</h2>
-              <p className="text-blue-100 mb-4">{user.college} • {user.year}</p>
+              <p className="text-text-secondary mb-4">{user.college} • {user.year}</p>
               <div className="flex flex-wrap gap-2">
                 {userSkills.slice(0, 5).map(skill => (
-                  <span key={skill} className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm">
+                  <span key={skill} className="px-3 py-1 bg-bg-secondary/50 backdrop-blur-sm rounded-full text-sm text-text-primary">
                     {skill}
                   </span>
                 ))}
                 {userSkills.length > 5 && (
-                  <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm">
+                  <span className="px-3 py-1 bg-bg-secondary/50 backdrop-blur-sm rounded-full text-sm text-text-primary">
                     +{userSkills.length - 5} more
                   </span>
                 )}
@@ -74,7 +74,7 @@ export function StudentDashboard({ user, onLogout }) {
             </div>
             <div className="text-right">
               <div className="text-4xl font-bold mb-1">{registeredEvents.length}</div>
-              <div className="text-blue-100">Events Registered</div>
+              <div className="text-text-secondary">Events Registered</div>
             </div>
           </div>
         </div>
@@ -87,8 +87,8 @@ export function StudentDashboard({ user, onLogout }) {
               onClick={() => setActiveTab(id)}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl whitespace-nowrap transition-all ${
                 activeTab === id
-                  ? 'bg-white shadow-lg text-blue-600'
-                  : 'bg-white/50 text-gray-600 hover:bg-white hover:shadow'
+                  ? 'bg-bg-secondary shadow-lg text-sky-600'
+                  : 'bg-bg-secondary/50 text-text-secondary hover:bg-bg-secondary hover:shadow'
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -120,9 +120,9 @@ export function StudentDashboard({ user, onLogout }) {
               ))}
             </div>
             {filteredEvents.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                No events found matching your criteria
-              </div>
+              <div className="text-center py-12 text-text-secondary">
+                  No events found matching your criteria
+                </div>
             )}
           </div>
         )}

@@ -66,7 +66,7 @@ export function ResumeParser({ currentSkills, onSkillsExtracted }) {
       <div className="bg-white rounded-2xl shadow-lg p-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-            <FileText className="w-6 h-6 text-white" />
+            <FileText className="w-6 h-6 text-text-primary" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Resume Parser</h2>
@@ -101,7 +101,7 @@ export function ResumeParser({ currentSkills, onSkillsExtracted }) {
           {isProcessing ? (
             <div className="space-y-4">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full mx-auto flex items-center justify-center animate-pulse">
-                <Sparkles className="w-8 h-8 text-white" />
+                <Sparkles className="w-8 h-8 text-text-primary" />
               </div>
               <div>
                 <p className="font-medium text-gray-900 mb-2">Processing Resume...</p>
@@ -116,7 +116,7 @@ export function ResumeParser({ currentSkills, onSkillsExtracted }) {
           ) : extractedSkills.length > 0 ? (
             <div className="space-y-6">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full mx-auto flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-white" />
+                <CheckCircle2 className="w-8 h-8 text-text-primary" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -146,7 +146,7 @@ export function ResumeParser({ currentSkills, onSkillsExtracted }) {
                 <div className="flex gap-3 justify-center">
                   <button
                     onClick={handleAddSkills}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-shadow"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-text-primary rounded-lg hover:shadow-lg transition-shadow"
                   >
                     Add to Profile
                   </button>
@@ -180,7 +180,7 @@ export function ResumeParser({ currentSkills, onSkillsExtracted }) {
               />
               <label
                 htmlFor="resume-upload"
-                className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg cursor-pointer hover:shadow-lg transition-shadow"
+                className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-text-primary rounded-lg cursor-pointer hover:shadow-lg transition-shadow"
               >
                 Choose File
               </label>

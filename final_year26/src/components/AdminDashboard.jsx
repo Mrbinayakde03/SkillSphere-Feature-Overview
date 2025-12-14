@@ -1,5 +1,5 @@
+
 import { useState } from 'react';
-import { User } from '../App';
 import { Header } from './Header';
 import { mockEvents, mockUsers } from '../data/mockData';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';

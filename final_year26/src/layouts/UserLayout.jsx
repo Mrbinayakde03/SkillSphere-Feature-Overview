@@ -1,28 +1,75 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Header } from '../components/shared/Header';
 import { Sidebar } from '../components/shared/Sidebar';
 import { Footer } from '../components/shared/Footer';
 import { useAuth } from '../contexts/AuthContext';
 
+const layoutVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const contentVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.5 }
+  }
+};
+
 export function UserLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Open sidebar by default on desktop screens
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setSidebarOpen(true);
+    }
+  }, []);
   const { user, logout } = useAuth();
 
+  const handleMenuToggle = () => setSidebarOpen(!sidebarOpen);
+  const handleLogout = () => {
+    logout?.();
+    setSidebarOpen(false);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar user={user} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <motion.div 
+      className="app-layout"
+      variants={layoutVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <Sidebar 
+        user={user} 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+      />
       
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header user={user} onLogout={logout} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="main-content">
+        <Header 
+          user={user} 
+          onLogout={handleLogout} 
+          onMenuToggle={handleMenuToggle} 
+        />
         
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            {children}
-          </div>
-        </main>
+        <motion.main 
+          className="content-area"
+          variants={contentVariants}
+        >
+          {children}
+        </motion.main>
 
         <Footer />
       </div>
-    </div>
+    </motion.div>
   );
 }

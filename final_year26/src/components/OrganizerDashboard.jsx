@@ -1,5 +1,5 @@
+
 import { useState } from 'react';
-import { User } from '../App';
 import { Header } from './Header';
 import { mockEvents } from '../data/mockData';
 import { Plus, Calendar, Users, TrendingUp, Edit, Trash2, Filter } from 'lucide-react';
@@ -56,7 +56,7 @@ export function OrganizerDashboard({ user, onLogout }) {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-shadow"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-text-primary rounded-lg hover:shadow-lg transition-shadow"
           >
             <Plus className="w-5 h-5" />
             <span>Create Event</span>
@@ -138,7 +138,7 @@ export function OrganizerDashboard({ user, onLogout }) {
               {filterStatus === 'all' && (
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-shadow"
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-text-primary rounded-lg hover:shadow-lg transition-shadow"
                 >
                   Create Your First Event
                 </button>

@@ -41,7 +41,7 @@ export function CreateEventModal({ onClose, onCreate, college }) {
   const eligibilityOptions = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'All Years'];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-white/10 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto my-8">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Create New Event</h2>
@@ -252,7 +252,7 @@ export function CreateEventModal({ onClose, onCreate, college }) {
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-shadow"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-text-primary rounded-lg hover:shadow-lg transition-shadow"
             >
               Create Event
             </button>

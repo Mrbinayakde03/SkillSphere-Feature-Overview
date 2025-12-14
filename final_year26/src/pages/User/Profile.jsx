@@ -20,7 +20,7 @@ export function UserProfilePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input type="email" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" defaultValue="john@university.edu" />
               </div>
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <button className="px-6 py-2 bg-blue-600 text-text-primary rounded-lg hover:bg-blue-700 transition-colors">
                 Save Changes
               </button>
             </div>

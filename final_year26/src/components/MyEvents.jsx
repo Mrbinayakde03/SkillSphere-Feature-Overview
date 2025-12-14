@@ -119,7 +119,7 @@ export function MyEvents({ registeredEventIds, onUnregister }) {
                   {!isInCalendar ? (
                     <button
                       onClick={() => handleAddToCalendar(event.id)}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg transition-shadow"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-text-primary rounded-lg hover:shadow-lg transition-shadow"
                     >
                       <Calendar className="w-4 h-4" />
                       <span>Add to Google Calendar</span>

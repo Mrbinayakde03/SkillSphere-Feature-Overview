@@ -61,8 +61,8 @@ export function LoginPage() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <GraduationCap className="w-7 h-7 text-white" />
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+              <GraduationCap className="w-7 h-7 text-text-primary" />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               SkillSphere
@@ -75,11 +75,11 @@ export function LoginPage() {
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="flex mb-6">
-            <button
+                <button
               onClick={() => setMode('login')}
               className={`flex-1 py-2 text-center rounded-lg font-medium transition-colors ${
                 mode === 'login'
-                  ? 'bg-blue-600 text-white'
+                      ? 'bg-blue-600 text-text-primary'
                   : 'text-gray-600 hover:text-blue-600'
               }`}
             >
@@ -89,7 +89,7 @@ export function LoginPage() {
               onClick={() => setMode('register')}
               className={`flex-1 py-2 text-center rounded-lg font-medium transition-colors ${
                 mode === 'register'
-                  ? 'bg-blue-600 text-white'
+                      ? 'bg-blue-600 text-text-primary'
                   : 'text-gray-600 hover:text-blue-600'
               }`}
             >
@@ -246,7 +246,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-text-primary py-3 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>

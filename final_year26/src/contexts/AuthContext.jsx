@@ -95,6 +95,7 @@ const authReducer = (state, action) => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
+
   // Check for existing token on mount
   useEffect(() => {
     const checkAuth = async () => {
@@ -112,6 +113,21 @@ export const AuthProvider = ({ children }) => {
           clearAuthData();
           dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
+      } else if (process.env.NODE_ENV === 'development') {
+        // In development, provide a default user to prevent white screen
+        const defaultUser = {
+          id: 1,
+          name: 'Demo Student',
+          email: 'demo@example.com',
+          role: 'student',
+          college: 'Tech University',
+          year: '2024',
+          skills: ['JavaScript', 'React', 'Node.js']
+        };
+        dispatch({
+          type: AUTH_ACTIONS.SET_USER,
+          payload: defaultUser
+        });
       }
     };
 

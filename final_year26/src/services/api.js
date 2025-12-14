@@ -3,6 +3,33 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://your-production-api.com' 
   : 'http://localhost:5000/api';
 
+
+// Mock data for development
+const mockUsers = [
+  {
+    id: 1,
+    name: 'John Doe',
+    email: 'john@example.com',
+    role: 'student',
+    college: 'Tech University',
+    year: '2024',
+    skills: ['JavaScript', 'React', 'Node.js']
+  },
+  {
+    id: 2,
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    role: 'organizer',
+    college: 'Tech University'
+  },
+  {
+    id: 3,
+    name: 'Admin User',
+    email: 'admin@example.com',
+    role: 'admin'
+  }
+];
+
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   if (!response.ok) {
@@ -14,6 +41,30 @@ const handleResponse = async (response) => {
 
 // Helper function to make authenticated requests
 const makeRequest = async (endpoint, options = {}) => {
+  // In development, simulate API delays and handle gracefully
+  if (process.env.NODE_ENV === 'development') {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+    
+    // Handle auth endpoints with mock data
+    if (endpoint === '/auth/me' && options.method === undefined) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        return { data: { user: mockUsers[0] } }; // Return first mock user
+      }
+    }
+    
+    if (endpoint === '/auth/login' && options.method === 'POST') {
+      const body = JSON.parse(options.body || '{}');
+      const user = mockUsers.find(u => u.email === body.email);
+      if (user) {
+        localStorage.setItem('token', 'mock-token');
+        return { data: { user, token: 'mock-token' } };
+      } else {
+        throw new Error('Invalid credentials');
+      }
+    }
+  }
+  
   const token = localStorage.getItem('token');
   
   const config = {
@@ -25,8 +76,35 @@ const makeRequest = async (endpoint, options = {}) => {
     ...options
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-  return handleResponse(response);
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    return handleResponse(response);
+  } catch (error) {
+    // In development, if API is not available, return mock data
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('API not available, using mock data:', error.message);
+      
+      if (endpoint === '/auth/me') {
+        return { data: { user: mockUsers[0] } };
+      }
+      
+      if (endpoint.startsWith('/users')) {
+        return { data: mockUsers };
+      }
+      
+      if (endpoint.startsWith('/events')) {
+        return { data: [] };
+      }
+      
+      if (endpoint.startsWith('/organizations')) {
+        return { data: [] };
+      }
+      
+      // Return empty response for other endpoints
+      return { data: {} };
+    }
+    throw error;
+  }
 };
 
 // Authentication API

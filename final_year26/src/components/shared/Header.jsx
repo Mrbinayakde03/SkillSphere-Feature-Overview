@@ -1,87 +1,254 @@
-import { Search, Bell, User, LogOut, Menu } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Search, 
+  Bell, 
+  User, 
+  LogOut, 
+  Menu, 
+  Settings, 
+  ChevronDown,
+  Home,
+  Calendar,
+  Users,
+  BarChart3,
+  Building
+} from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+
+const motionVariants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 }
+};
+
+const dropdownVariants = {
+  hidden: { opacity: 0, scale: 0.95, y: -10 },
+  visible: { 
+    opacity: 1, 
+    scale: 1, 
+    y: 0,
+    transition: { duration: 0.2 }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.95, 
+    y: -10,
+    transition: { duration: 0.15 }
+  }
+};
+
+const iconVariants = {
+  initial: { rotate: 0 },
+  hover: { rotate: 10, scale: 1.1 }
+};
 
 export function Header({ user, onLogout, onMenuToggle }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { logout } = useAuth();
+
+  const getNavigationItems = () => {
+    switch (user?.role) {
+      case 'admin':
+        return [
+          { icon: Home, label: 'Dashboard', href: '/dashboard' },
+          { icon: Users, label: 'Users', href: '/admin/users' },
+          { icon: Building, label: 'Organizations', href: '/admin/organizations' },
+          { icon: BarChart3, label: 'Analytics', href: '/dashboard' }
+        ];
+      case 'organizer':
+        return [
+          { icon: Home, label: 'Dashboard', href: '/dashboard' },
+          { icon: Calendar, label: 'Events', href: '/organizer/events' },
+          { icon: Users, label: 'Members', href: '/organizer/members/requests' }
+        ];
+      case 'student':
+      default:
+        return [
+          { icon: Home, label: 'Dashboard', href: '/dashboard' },
+          { icon: Calendar, label: 'Events', href: '/user/events' },
+          { icon: Users, label: 'Recommended', href: '/user/recommended' }
+        ];
+    }
+  };
+
+  const navigationItems = getNavigationItems();
+
+  const handleLogout = () => {
+    setShowProfileMenu(false);
+    logout?.();
+    onLogout?.();
+  };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-      <div className="px-4 py-4 flex items-center justify-between">
-        {/* Left: Menu & Search */}
-        <div className="flex items-center gap-4 flex-1">
-          <button
+    <motion.header 
+      className="header glass"
+      initial="hidden"
+      animate="visible"
+      variants={motionVariants}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="header-content">
+        {/* Left Section */}
+        <div className="header-left">
+          <motion.button
             onClick={onMenuToggle}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors lg:hidden"
-            title="Toggle menu"
+            className="header-button"
+            whileHover="hover"
+            initial="initial"
+            variants={iconVariants}
+            aria-label="Toggle menu"
           >
             <Menu className="w-5 h-5" />
-          </button>
+          </motion.button>
 
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SS</span>
-            </div>
-            <h1 className="text-xl font-bold hidden sm:inline">SkillSphere</h1>
-          </div>
+          <motion.a 
+            href="/dashboard" 
+            className="header-logo"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <motion.div 
+              className="logo-icon"
+              animate={{ 
+                boxShadow: [
+                  '0 0 20px rgba(0, 255, 255, 0.3)',
+                  '0 0 30px rgba(139, 92, 246, 0.3)',
+                  '0 0 20px rgba(0, 255, 255, 0.3)'
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              SS
+            </motion.div>
+            <span className="hidden sm:inline text-gradient">SkillSphere</span>
+          </motion.a>
+
+          {/* Navigation Links - Desktop */}
+          <nav className="hidden lg:flex items-center space-x-1 ml-6">
+            {navigationItems.map((item) => (
+              <motion.a
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </motion.a>
+            ))}
+          </nav>
 
           {/* Search Bar */}
-          <div className="hidden md:flex items-center flex-1 max-w-xs ml-4">
-            <Search className="absolute ml-3 w-4 h-4 text-gray-400" />
+          <div className="header-search">
+            <Search className="search-icon w-4 h-4" />
             <input
               type="text"
-              placeholder="Search events or orgs..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Search events, organizations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
             />
           </div>
         </div>
 
-        {/* Right: Notifications & Profile */}
-        <div className="flex items-center gap-4">
+        {/* Right Section */}
+        <div className="header-right">
           {/* Notifications */}
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative" title="Notifications">
-            <Bell className="w-5 h-5 text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          <motion.button 
+            className="header-button relative"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <Bell className="w-5 h-5" />
+            <motion.span 
+              className="notification-badge"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.button>
 
-          {/* Profile Menu */}
-          <div className="relative">
-            <button
+          {/* Profile Dropdown */}
+          <div className="profile-dropdown">
+            <motion.button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="profile-button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+              <div className="profile-avatar">
                 {user?.name?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <span className="hidden sm:inline text-sm font-medium text-gray-700">{user?.name || 'User'}</span>
-            </button>
+              <span className="hidden sm:inline text-sm font-medium text-text-primary">
+                {user?.name || 'User'}
+              </span>
+              <ChevronDown 
+                className={`w-4 h-4 text-text-secondary transition-transform ${
+                  showProfileMenu ? 'rotate-180' : ''
+                }`} 
+              />
+            </motion.button>
 
-            {/* Profile Dropdown */}
-            {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
-                  <p className="text-xs text-gray-600 capitalize">{user?.role || 'user'}</p>
-                </div>
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Profile Settings
-                </button>
-                <button
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    onLogout?.();
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-100"
+            {/* Dropdown Menu */}
+            <AnimatePresence>
+              {showProfileMenu && (
+                <motion.div
+                  className="dropdown-menu"
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={dropdownVariants}
                 >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              </div>
-            )}
+                  {/* User Info */}
+                  <div className="px-4 py-3 border-b border-border-primary">
+                    <p className="text-sm font-medium text-text-primary">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-xs text-text-secondary capitalize">
+                      {user?.role || 'user'}
+                    </p>
+                  </div>
+
+                  {/* Menu Items */}
+                  <motion.a
+                    href="/user/profile"
+                    className="dropdown-item"
+                    onClick={() => setShowProfileMenu(false)}
+                    whileHover={{ x: 4 }}
+                  >
+                    <User className="w-4 h-4" />
+                    Profile Settings
+                  </motion.a>
+
+                  <motion.a
+                    href="/settings"
+                    className="dropdown-item"
+                    onClick={() => setShowProfileMenu(false)}
+                    whileHover={{ x: 4 }}
+                  >
+                    <Settings className="w-4 h-4" />
+                    Preferences
+                  </motion.a>
+
+                  <div className="dropdown-separator" />
+
+                  <motion.button
+                    onClick={handleLogout}
+                    className="dropdown-item w-full text-left text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                    whileHover={{ x: 4 }}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

@@ -32,7 +32,7 @@ export function OrganizerMembersPage() {
           {[1, 2, 3].map(i => (
             <div key={i} className="p-6 flex items-center justify-between hover:bg-gray-50">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-text-primary font-bold">
                   JD
                 </div>
                 <div>
@@ -42,7 +42,7 @@ export function OrganizerMembersPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                <button className="px-4 py-2 bg-green-600 text-text-primary rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   Approve
                 </button>

@@ -9,7 +9,7 @@ export function OrganizerEventsPage() {
           <h1 className="text-3xl font-bold text-gray-900">My Events</h1>
           <p className="text-gray-600">Create and manage your organization events</p>
         </div>
-        <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-shadow">
+        <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-text-primary rounded-lg hover:shadow-lg transition-shadow">
           + Create Event
         </button>
       </div>

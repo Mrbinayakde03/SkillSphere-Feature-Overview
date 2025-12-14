@@ -19,7 +19,7 @@ export function EventCard({ event, isRegistered, onRegister, matchScore }) {
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all border border-gray-100 overflow-hidden group">
       {matchScore && (
-        <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-text-primary px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Award className="w-4 h-4" />
             <span className="text-sm font-medium">AI Match Score</span>
@@ -104,7 +104,7 @@ export function EventCard({ event, isRegistered, onRegister, matchScore }) {
           className={`w-full py-3 rounded-lg font-medium transition-all ${
             isRegistered
               ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg'
+              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-text-primary hover:shadow-lg'
           }`}
         >
           {isRegistered ? 'Unregister' : 'Register Now'}
