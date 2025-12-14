@@ -1,5 +1,7 @@
 /* SkillSphere Component Styles */
 
+
+
 /* ===== HEADER COMPONENT ===== */
 .header {
   background: var(--color-bg-glass);
@@ -7,7 +9,8 @@
   border-bottom: 1px solid var(--color-border-primary);
   position: sticky;
   top: 0;
-  z-index: var(--z-sticky);
+  z-index: 100; /* Higher than sidebar */
+  height: 80px; /* Fixed header height */
 }
 
 .header-content {
@@ -201,22 +204,33 @@
   margin: var(--space-2) 0;
 }
 
+
+
+
+
 /* ===== SIDEBAR COMPONENT ===== */
 .sidebar {
   background: var(--color-bg-glass);
   backdrop-filter: blur(20px);
   border-right: 1px solid var(--color-border-primary);
   width: 280px;
-  height: 100vh;
-  position: fixed;
+  height: calc(100vh - 80px); /* Full height minus header height */
+  position: fixed; /* Fixed positioning on left side */
   left: 0;
-  top: 0;
-  z-index: var(--z-fixed);
+  top: 80px; /* Below header */
+  z-index: 50; /* Above everything */
   transition: transform var(--transition-normal);
+  margin-top: 0;
 }
 
 .sidebar.closed {
   transform: translateX(-100%);
+}
+
+/* Ensure sidebar is visible when open */
+.sidebar:not(.closed) {
+  display: block;
+  transform: translateX(0);
 }
 
 .sidebar-content {

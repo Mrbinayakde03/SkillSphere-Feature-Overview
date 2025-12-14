@@ -1,0 +1,551 @@
+/* LoginPage Styles with 3D Animations */
+
+/* Main Container */
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #581c87 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animated Background Elements */
+.login-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.background-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(100px, -100px);
+    opacity: 0;
+  }
+}
+
+/* Main Content Layout */
+.login-content {
+  max-width: 1200px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+@media (max-width: 1024px) {
+  .login-content {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+  }
+}
+
+/* Left Side - 3D Animation Section */
+.login-illustration {
+  position: relative;
+  height: 600px;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .login-illustration {
+    display: block;
+  }
+}
+
+/* Central Logo with 3D Rotation */
+.login-logo-3d {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 96px;
+  height: 96px;
+  background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: rotate3D 20s linear infinite, glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes rotate3D {
+  0% {
+    transform: translate(-50%, -50%) rotateY(0deg) rotateX(0deg);
+  }
+  25% {
+    transform: translate(-50%, -50%) rotateY(90deg) rotateX(15deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotateY(180deg) rotateX(0deg);
+  }
+  75% {
+    transform: translate(-50%, -50%) rotateY(270deg) rotateX(-15deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotateY(360deg) rotateX(0deg);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  }
+  100% {
+    box-shadow: 0 25px 50px rgba(59, 130, 246, 0.3), 
+                0 0 30px rgba(168, 85, 247, 0.2);
+  }
+}
+
+/* Floating Elements */
+.floating-element {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: floatElement 8s ease-in-out infinite;
+}
+
+.floating-element:nth-child(1) { animation-delay: 0s; }
+.floating-element:nth-child(2) { animation-delay: 1s; }
+.floating-element:nth-child(3) { animation-delay: 2s; }
+.floating-element:nth-child(4) { animation-delay: 3s; }
+
+@keyframes floatElement {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(180deg);
+    opacity: 0.8;
+  }
+}
+
+.floating-icon {
+  width: 32px;
+  height: 32px;
+  color: rgba(96, 165, 250, 1);
+}
+
+/* Illustration Text */
+.illustration-text {
+  text-align: center;
+  margin-top: 2rem;
+  animation: fadeInUp 1s ease-out 0.5s both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.illustration-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.illustration-subtitle {
+  color: rgba(147, 197, 253, 1);
+  font-size: 1.125rem;
+}
+
+/* Right Side - Login Form */
+.login-form-section {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  animation: slideInRight 0.8s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.login-form-container {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 32px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+}
+
+.login-form-container:hover {
+  transform: rotateX(5deg) rotateY(5deg);
+}
+
+/* Mobile Header */
+.mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .mobile-header {
+    display: none;
+  }
+}
+
+.mobile-logo {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.mobile-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+/* Form Header */
+.form-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.form-title {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.form-subtitle {
+  color: rgba(147, 197, 253, 1);
+}
+
+/* Error Messages */
+.error-message {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  color: rgba(248, 113, 113, 1);
+  font-size: 0.875rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form Fields */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(147, 197, 253, 1);
+  margin-bottom: 0.5rem;
+}
+
+.input-container {
+  position: relative;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  color: white;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  transform-style: preserve-3d;
+}
+
+.form-input::placeholder {
+  color: rgba(147, 197, 253, 1);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateZ(10px);
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: rgba(96, 165, 250, 1);
+}
+
+/* Password Toggle */
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(147, 197, 253, 1);
+  transition: color 0.3s ease;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.password-toggle:hover {
+  color: white;
+}
+
+/* Role Selector */
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.role-button {
+  padding: 0.75rem;
+  border-radius: 16px;
+  border: 1px solid;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.role-button.active {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: #60a5fa;
+  color: white;
+  transform: scale(1.02);
+}
+
+.role-button.inactive {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(147, 197, 253, 1);
+}
+
+.role-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.role-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Remember & Forgot */
+.remember-forgot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: rgba(147, 197, 253, 1);
+}
+
+.remember-checkbox {
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #60a5fa;
+}
+
+.forgot-password {
+  font-size: 0.875rem;
+  color: rgba(147, 197, 253, 1);
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.forgot-password:hover {
+  color: white;
+}
+
+/* Submit Button */
+.submit-button {
+  width: 100%;
+  background: linear-gradient(135deg, #3b82f6 0%, #a855f7 100%);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  transform-style: preserve-3d;
+}
+
+.submit-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #9333ea 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+.submit-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Register Link */
+.register-link {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.register-text {
+  color: rgba(147, 197, 253, 1);
+  font-size: 0.875rem;
+}
+
+.register-button {
+  color: rgba(147, 197, 253, 1);
+  font-weight: 600;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.register-button:hover {
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-page {
+    padding: 0.5rem;
+  }
+  
+  .login-form-container {
+    padding: 1.5rem;
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
+  }
+  
+  .illustration-title {
+    font-size: 2rem;
+  }
+}
+
+/* Loading Animation */
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

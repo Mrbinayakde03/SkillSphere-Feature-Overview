@@ -1,12 +1,19 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
+import './styles/UserRequested.css'
 
 // Auth Context
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
+
 // Authentication
-import { LoginPage } from './components/LoginPage'
+import { LoginPage } from './components/Auth/LoginPage'
+import { RegisterPage } from './components/Auth/RegisterPage'
+
+// Pages
+import HomePage from './pages/HomePage'
 
 // Layouts
 import { AdminLayout } from './layouts/AdminLayout'
@@ -48,7 +55,8 @@ function ProtectedRoute({ children, requiredRole }) {
     return <LoginPage />;
   }
 
-  if (requiredRole && user?.role !== requiredRole) {
+
+  if (requiredRole && !(user?.role === requiredRole || (requiredRole === 'student' && user?.role === 'user'))) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -59,9 +67,36 @@ function ProtectedRoute({ children, requiredRole }) {
 function AppRoutes() {
   const { user } = useAuth();
 
+
   return (
     <Router>
+
       <Routes>
+
+        {/* Public Routes */}
+        <Route 
+          path="/" 
+          element={<HomePage />} 
+        />
+        <Route 
+          path="/about" 
+          element={<HomePage />} 
+        />
+        <Route 
+          path="/home" 
+          element={<HomePage />} 
+        />
+        
+        {/* Authentication Routes */}
+        <Route 
+          path="/login" 
+          element={<LoginPage />} 
+        />
+        <Route 
+          path="/register" 
+          element={<RegisterPage />} 
+        />
+        
         {/* Admin Routes */}
         {user?.role === 'admin' && (
           <>
@@ -134,8 +169,9 @@ function AppRoutes() {
           </>
         )}
 
+
         {/* User/Student Routes */}
-        {user?.role === 'student' && (
+        {(user?.role === 'student' || user?.role === 'user') && (
           <>
             <Route
               path="/dashboard"

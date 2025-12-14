@@ -1,149 +1,163 @@
+
+
+
+
+
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
-  Bell, 
-  User, 
-  LogOut, 
   Menu, 
-  Settings, 
-  ChevronDown,
   Home,
-  Calendar,
-  Users,
-  BarChart3,
-  Building
+  Info,
+  User,
+  UserPlus,
+  Bell,
+  Settings
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 
-const motionVariants = {
+const headerVariants = {
   hidden: { opacity: 0, y: -20 },
-  visible: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 }
+  visible: { opacity: 1, y: 0 }
 };
 
-const dropdownVariants = {
-  hidden: { opacity: 0, scale: 0.95, y: -10 },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
-    y: 0,
-    transition: { duration: 0.2 }
+const navLinkVariants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: { opacity: 1, y: 0 }
+};
+
+
+
+const iconVariants = {
+  initial: { rotate: 0, scale: 1 },
+  hover: { 
+    rotate: [0, -5, 5, -5, 0], 
+    scale: 1.1,
+    transition: { 
+      rotate: { duration: 0.6, ease: "easeInOut" },
+      scale: { duration: 0.2 }
+    }
   },
-  exit: { 
-    opacity: 0, 
-    scale: 0.95, 
-    y: -10,
-    transition: { duration: 0.15 }
+  tap: { 
+    rotate: 0, 
+    scale: 0.9,
+    transition: { duration: 0.1 }
   }
 };
 
-const iconVariants = {
-  initial: { rotate: 0 },
-  hover: { rotate: 10, scale: 1.1 }
+const toggleButtonVariants = {
+  initial: { 
+    rotateY: 0,
+    boxShadow: "0 8px 30px var(--skyglow-color), inset 0 1px 0 rgba(255,255,255,0.6)"
+  },
+  hover: { 
+    rotateY: 5,
+    rotateX: 5,
+    boxShadow: [
+      "0 12px 40px var(--skyglow-color), inset 0 1px 0 rgba(255,255,255,0.8)",
+      "0 8px 30px rgba(56,189,248,0.4), inset 0 1px 0 rgba(255,255,255,0.9)"
+    ],
+    transition: { 
+      boxShadow: { duration: 0.6, repeat: Infinity, repeatType: "reverse" }
+    }
+  },
+  tap: { 
+    rotateY: 0,
+    rotateX: 0,
+    scale: 0.95,
+    boxShadow: "0 4px 15px var(--skyglow-color), inset 0 1px 0 rgba(255,255,255,0.9)"
+  }
 };
 
-export function Header({ user, onLogout, onMenuToggle }) {
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const { logout } = useAuth();
 
-  const getNavigationItems = () => {
-    switch (user?.role) {
-      case 'admin':
-        return [
-          { icon: Home, label: 'Dashboard', href: '/dashboard' },
-          { icon: Users, label: 'Users', href: '/admin/users' },
-          { icon: Building, label: 'Organizations', href: '/admin/organizations' },
-          { icon: BarChart3, label: 'Analytics', href: '/dashboard' }
-        ];
-      case 'organizer':
-        return [
-          { icon: Home, label: 'Dashboard', href: '/dashboard' },
-          { icon: Calendar, label: 'Events', href: '/organizer/events' },
-          { icon: Users, label: 'Members', href: '/organizer/members/requests' }
-        ];
-      case 'student':
-      default:
-        return [
-          { icon: Home, label: 'Dashboard', href: '/dashboard' },
-          { icon: Calendar, label: 'Events', href: '/user/events' },
-          { icon: Users, label: 'Recommended', href: '/user/recommended' }
-        ];
-    }
+
+export function Header({ user, onMenuToggle }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notificationCount] = useState(3); // Mock notification count
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate('/login');
   };
 
-  const navigationItems = getNavigationItems();
-
-  const handleLogout = () => {
-    setShowProfileMenu(false);
-    logout?.();
-    onLogout?.();
+  const handleRegister = () => {
+    navigate('/register');
   };
 
   return (
     <motion.header 
-      className="header glass"
+      className="header-professional"
       initial="hidden"
       animate="visible"
-      variants={motionVariants}
+      variants={headerVariants}
       transition={{ duration: 0.3 }}
     >
-      <div className="header-content">
+      <div className="header-professional-content">
         {/* Left Section */}
         <div className="header-left">
+          {/* Sidebar Toggle Button */}
           <motion.button
             onClick={onMenuToggle}
-            className="header-button"
-            whileHover="hover"
+            className="sidebar-toggle-btn user-requested-style"
+            variants={toggleButtonVariants}
             initial="initial"
-            variants={iconVariants}
-            aria-label="Toggle menu"
+            whileHover="hover"
+            whileTap="tap"
+            aria-label="Toggle sidebar"
           >
-            <Menu className="w-5 h-5" />
+            <motion.div variants={iconVariants} initial="initial" whileHover="hover" whileTap="tap">
+              <Menu className="w-5 h-5" />
+            </motion.div>
           </motion.button>
 
           {/* Logo */}
-          <motion.a 
-            href="/dashboard" 
-            className="header-logo"
+          <motion.div 
+            className="logo-section"
             whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
-            <motion.div 
-              className="logo-icon"
-              animate={{ 
-                boxShadow: [
-                  '0 0 20px rgba(0, 255, 255, 0.3)',
-                  '0 0 30px rgba(139, 92, 246, 0.3)',
-                  '0 0 20px rgba(0, 255, 255, 0.3)'
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
+            <div className="logo-icon">
               SS
-            </motion.div>
-            <span className="hidden sm:inline text-gradient">SkillSphere</span>
-          </motion.a>
+            </div>
+            <span className="logo-text">SkillSphere</span>
+          </motion.div>
+        </div>
 
-          {/* Navigation Links - Desktop */}
-          <nav className="hidden lg:flex items-center space-x-1 ml-6">
-            {navigationItems.map((item) => (
-              <motion.a
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
-              >
-                <item.icon className="w-4 h-4" />
-                {item.label}
-              </motion.a>
-            ))}
+
+
+        {/* Center Section - Navigation */}
+        <div className="header-center">
+          <nav className="header-nav">
+            <motion.button 
+              onClick={() => navigate('/')}
+              className="nav-link"
+              variants={navLinkVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+            >
+              <Home className="w-4 h-4" />
+              Home
+            </motion.button>
+            <motion.button 
+              onClick={() => navigate('/about')}
+              className="nav-link"
+              variants={navLinkVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.1 }}
+              whileHover="hover"
+            >
+              <Info className="w-4 h-4" />
+              About
+            </motion.button>
           </nav>
+        </div>
 
+        {/* Right Section */}
+        <div className="header-right">
           {/* Search Bar */}
-          <div className="header-search">
+          <div className="search-container">
             <Search className="search-icon w-4 h-4" />
             <input
               type="text"
@@ -153,100 +167,72 @@ export function Header({ user, onLogout, onMenuToggle }) {
               className="search-input"
             />
           </div>
-        </div>
 
-        {/* Right Section */}
-        <div className="header-right">
-          {/* Notifications */}
-          <motion.button 
-            className="header-button relative"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Bell className="w-5 h-5" />
-            <motion.span 
-              className="notification-badge"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          </motion.button>
+          {/* Auth/Profile Controls */}
+          {!user ? (
 
-          {/* Profile Dropdown */}
-          <div className="profile-dropdown">
-            <motion.button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="profile-button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="profile-avatar">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
+            <div className="auth-buttons">
+              <motion.button 
+                className="btn btn-outline"
+                onClick={handleLogin}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <User className="w-4 h-4" />
+                Login
+              </motion.button>
+              
+              <motion.button 
+                className="btn btn-primary"
+                onClick={handleRegister}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <UserPlus className="w-4 h-4" />
+                Register
+              </motion.button>
+            </div>
+          ) : (
+            <div className="profile-controls">
+              {/* Notifications */}
+              <motion.button 
+                className="icon-button notification-btn"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Notifications"
+              >
+                <Bell className="w-5 h-5" />
+                {notificationCount > 0 && (
+                  <span className="notification-badge">{notificationCount}</span>
+                )}
+              </motion.button>
+
+              {/* Settings */}
+              <motion.button 
+                className="icon-button settings-btn"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Settings"
+              >
+                <Settings className="w-5 h-5" />
+              </motion.button>
+
+              {/* User Profile */}
+              <div className="user-profile">
+                <div className="user-avatar">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div className="user-info">
+                  <span className="user-name">
+                    {user?.name || 'User'}
+                  </span>
+                  <span className="user-role">
+                    {user?.role || 'user'}
+                  </span>
+                </div>
               </div>
-              <span className="hidden sm:inline text-sm font-medium text-text-primary">
-                {user?.name || 'User'}
-              </span>
-              <ChevronDown 
-                className={`w-4 h-4 text-text-secondary transition-transform ${
-                  showProfileMenu ? 'rotate-180' : ''
-                }`} 
-              />
-            </motion.button>
-
-            {/* Dropdown Menu */}
-            <AnimatePresence>
-              {showProfileMenu && (
-                <motion.div
-                  className="dropdown-menu"
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={dropdownVariants}
-                >
-                  {/* User Info */}
-                  <div className="px-4 py-3 border-b border-border-primary">
-                    <p className="text-sm font-medium text-text-primary">
-                      {user?.name || 'User'}
-                    </p>
-                    <p className="text-xs text-text-secondary capitalize">
-                      {user?.role || 'user'}
-                    </p>
-                  </div>
-
-                  {/* Menu Items */}
-                  <motion.a
-                    href="/user/profile"
-                    className="dropdown-item"
-                    onClick={() => setShowProfileMenu(false)}
-                    whileHover={{ x: 4 }}
-                  >
-                    <User className="w-4 h-4" />
-                    Profile Settings
-                  </motion.a>
-
-                  <motion.a
-                    href="/settings"
-                    className="dropdown-item"
-                    onClick={() => setShowProfileMenu(false)}
-                    whileHover={{ x: 4 }}
-                  >
-                    <Settings className="w-4 h-4" />
-                    Preferences
-                  </motion.a>
-
-                  <div className="dropdown-separator" />
-
-                  <motion.button
-                    onClick={handleLogout}
-                    className="dropdown-item w-full text-left text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    whileHover={{ x: 4 }}
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </motion.button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </motion.header>

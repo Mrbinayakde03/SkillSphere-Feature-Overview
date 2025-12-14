@@ -41,6 +41,10 @@ export function UserLayout({ children }) {
     setSidebarOpen(false);
   };
 
+
+
+
+
   return (
     <motion.div 
       className="app-layout"
@@ -48,27 +52,34 @@ export function UserLayout({ children }) {
       initial="hidden"
       animate="visible"
     >
-      <Sidebar 
+      {/* Header at the top - full width */}
+      <Header 
         user={user} 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+        onLogout={handleLogout} 
+        onMenuToggle={handleMenuToggle} 
       />
       
-      <div className="main-content">
-        <Header 
+
+      {/* Main layout container */}
+      <div className="app-layout-container">
+        {/* Sidebar - full height on left side */}
+        <Sidebar 
           user={user} 
-          onLogout={handleLogout} 
-          onMenuToggle={handleMenuToggle} 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
         />
         
-        <motion.main 
-          className="content-area"
-          variants={contentVariants}
-        >
-          {children}
-        </motion.main>
+        {/* Main Content Area - adjusts based on sidebar */}
+        <div className={`main-content-area ${sidebarOpen ? 'main-content-with-sidebar' : 'main-content-without-sidebar'}`}>
+          <motion.main 
+            className="content-area"
+            variants={contentVariants}
+          >
+            {children}
+          </motion.main>
 
-        <Footer />
+          <Footer />
+        </div>
       </div>
     </motion.div>
   );
