@@ -1,6 +1,14 @@
+
 import express from 'express';
-import { registerUser } from '../../controllers/authController.js';
+import { 
+  registerUser, 
+  loginUser, 
+  getMe, 
+  updateProfile, 
+  changePassword 
+} from '../controllers/authController.js';
 import { upload } from '../middlewares/uploadMiddleware.js';
+import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -13,5 +21,13 @@ router.post(
   ]),
   registerUser
 );
+
+// Public routes
+router.post('/login', loginUser);
+
+// Protected routes
+router.get('/me', protect, getMe);
+router.put('/profile', protect, updateProfile);
+router.put('/password', protect, changePassword);
 
 export default router;
