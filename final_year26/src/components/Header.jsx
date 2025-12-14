@@ -1,7 +1,5 @@
-
-
-
-import { GraduationCap, LogOut, Menu } from 'lucide-react';
+import { GraduationCap, LogOut, Menu, LogIn, UserPlus } from 'lucide-react';
+import { Link, NavLink } from 'react-router-dom';
 import '../styles/Header.css';
 
 export function Header({ user, onLogout, onMenuToggle }) {
@@ -19,49 +17,64 @@ export function Header({ user, onLogout, onMenuToggle }) {
   };
 
   return (
-
     <header className="skillsphere-header">
       <div className="header-container">
+
+        {/* LEFT */}
         <div className="header-left-section">
-          {onMenuToggle && (
-            <button
-              onClick={onMenuToggle}
-              className="header-menu-toggle"
-              title="Toggle sidebar"
-            >
-              <Menu />
-            </button>
-          )}
-          <div className="header-logo-section">
+
+          {/* ✅ SIDEBAR TOGGLE – ALWAYS PRESENT */}
+          <button
+            className="header-menu-toggle"
+            onClick={onMenuToggle}
+            aria-label="Toggle Sidebar"
+          >
+            <Menu size={20} />
+          </button>
+
+          <Link to="/" className="header-brand">
             <div className="header-logo">
               <GraduationCap />
             </div>
-            <div className="header-title-section">
-              <h1 className="header-title">SkillSphere</h1>
-              <p className="header-subtitle">Event Discovery Platform</p>
-            </div>
-          </div>
+            <span className="header-title">SkillSphere</span>
+          </Link>
         </div>
 
-        <div className="header-user-section">
-          <div className="header-user-info">
-            <div className="header-user-details">
+        {/* CENTER */}
+        <nav className="header-nav">
+          <NavLink to="/" className="nav-link">Home</NavLink>
+          <NavLink to="/about" className="nav-link">About</NavLink>
+        </nav>
 
-              <span className="header-user-name">{user?.name || 'User'}</span>
-              <span className={getRoleBadgeClass(user?.role || '')}>
-                {user?.role || 'user'}
-              </span>
+        {/* RIGHT */}
+        <div className="header-right-section">
+          {user ? (
+            <>
+              <div className="header-user-info">
+                <span className="header-user-name">{user.name}</span>
+                <span className={getRoleBadgeClass(user.role)}>
+                  {user.role}
+                </span>
+              </div>
+
+              <button className="header-logout-button" onClick={onLogout}>
+                <LogOut size={18} />
+              </button>
+            </>
+          ) : (
+            <div className="header-auth-buttons">
+              <Link to="/login" className="auth-btn login">
+                <LogIn size={16} />
+                Login
+              </Link>
+              <Link to="/register" className="auth-btn register">
+                <UserPlus size={16} />
+                Register
+              </Link>
             </div>
-            <p className="header-user-email">{user?.email || 'user@example.com'}</p>
-          </div>
-          <button
-            onClick={onLogout}
-            className="header-logout-button"
-            title="Logout"
-          >
-            <LogOut />
-          </button>
+          )}
         </div>
+
       </div>
     </header>
   );

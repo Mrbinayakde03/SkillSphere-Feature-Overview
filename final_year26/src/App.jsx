@@ -1,103 +1,96 @@
-
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import './App.css'
-import './styles/UserRequested.css'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+import './App.css';
+import './styles/UserRequested.css';
 
 // Auth Context
-import { AuthProvider, useAuth } from './contexts/AuthContext'
-
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Authentication
-import { LoginPage } from './components/Auth/LoginPage'
-import { RegisterPage } from './components/Auth/RegisterPage'
+import { LoginPage } from './components/Auth/LoginPage';
+import { RegisterPage } from './components/Auth/RegisterPage';
 
-// Pages
-import HomePage from './pages/HomePage'
+// Public Pages
+import HomePage from './pages/HomePage';
+import AboutPage from './components/About';
 
 // Layouts
-import { AdminLayout } from './layouts/AdminLayout'
-import { OrganizerLayout } from './layouts/OrganizerLayout'
-import { UserLayout } from './layouts/UserLayout'
+import { PublicLayout } from './layouts/PublicLayout';
+import { AdminLayout } from './layouts/AdminLayout';
+import { OrganizerLayout } from './layouts/OrganizerLayout';
+import { UserLayout } from './layouts/UserLayout';
 
-// Pages - Admin
-import { AdminDashboardPage } from './pages/Admin/Dashboard'
-import { AdminOrganizationsPage } from './pages/Admin/Organizations'
-import { AdminUsersPage } from './pages/Admin/Users'
+// Admin Pages
+import { AdminDashboardPage } from './pages/Admin/Dashboard';
+import { AdminOrganizationsPage } from './pages/Admin/Organizations';
+import { AdminUsersPage } from './pages/Admin/Users';
 
-// Pages - Organizer
-import { OrganizerDashboardPage } from './pages/Organizer/Dashboard'
-import { OrganizerEventsPage } from './pages/Organizer/Events'
-import { OrganizerMembersPage } from './pages/Organizer/Members'
+// Organizer Pages
+import { OrganizerDashboardPage } from './pages/Organizer/Dashboard';
+import { OrganizerEventsPage } from './pages/Organizer/Events';
+import { OrganizerMembersPage } from './pages/Organizer/Members';
 
-// Pages - User
-import { UserDashboardPage } from './pages/User/Dashboard'
-import { UserRecommendedPage } from './pages/User/Recommended'
-import { UserEventsPage } from './pages/User/Events'
-import { UserProfilePage } from './pages/User/Profile'
+// User Pages
+import { UserDashboardPage } from './pages/User/Dashboard';
+import { UserRecommendedPage } from './pages/User/Recommended';
+import { UserEventsPage } from './pages/User/Events';
+import { UserProfilePage } from './pages/User/Profile';
 
-// Legacy components (for backward compatibility)
-import { StudentDashboard } from './components/StudentDashboard'
+// Legacy
+import { StudentDashboard } from './components/StudentDashboard';
 
-// Protected Route Component
+/* =========================
+   PROTECTED ROUTE
+========================= */
 function ProtectedRoute({ children, requiredRole }) {
   const { isAuthenticated, user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return <Navigate to="/login" replace />;
   }
 
-
-  if (requiredRole && !(user?.role === requiredRole || (requiredRole === 'student' && user?.role === 'user'))) {
+  if (
+    requiredRole &&
+    !(user?.role === requiredRole ||
+      (requiredRole === 'student' && user?.role === 'user'))
+  ) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 }
 
-// Main App Routes Component
+/* =========================
+   APP ROUTES
+========================= */
 function AppRoutes() {
-  const { user } = useAuth();
-
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <Router>
-
       <Routes>
 
-        {/* Public Routes */}
-        <Route 
-          path="/" 
-          element={<HomePage />} 
-        />
-        <Route 
-          path="/about" 
-          element={<HomePage />} 
-        />
-        <Route 
-          path="/home" 
-          element={<HomePage />} 
-        />
-        
-        {/* Authentication Routes */}
-        <Route 
-          path="/login" 
-          element={<LoginPage />} 
-        />
-        <Route 
-          path="/register" 
-          element={<RegisterPage />} 
-        />
-        
-        {/* Admin Routes */}
+        {/* ========= PUBLIC ROUTES (WITH HEADER) ========= */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+        </Route>
+
+        {/* ========= AUTH ROUTES ========= */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+        {/* ========= ADMIN ROUTES ========= */}
         {user?.role === 'admin' && (
           <>
             <Route
@@ -133,7 +126,7 @@ function AppRoutes() {
           </>
         )}
 
-        {/* Organizer Routes */}
+        {/* ========= ORGANIZER ROUTES ========= */}
         {user?.role === 'organizer' && (
           <>
             <Route
@@ -169,8 +162,7 @@ function AppRoutes() {
           </>
         )}
 
-
-        {/* User/Student Routes */}
+        {/* ========= USER / STUDENT ROUTES ========= */}
         {(user?.role === 'student' || user?.role === 'user') && (
           <>
             <Route
@@ -226,17 +218,24 @@ function AppRoutes() {
           </>
         )}
 
-        {/* Default redirect based on role */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        {/* Fallback for unknown routes */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* ========= FALLBACK ========= */}
+        <Route
+          path="*"
+          element={
+            isAuthenticated
+              ? <Navigate to="/dashboard" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+
       </Routes>
     </Router>
   );
 }
 
-// Main App Component
+/* =========================
+   MAIN APP
+========================= */
 function App() {
   return (
     <AuthProvider>
