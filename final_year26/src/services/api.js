@@ -38,9 +38,10 @@ export const authAPI = {
 
   register: async (userData) => {
     try {
+
       // Map frontend fields to backend format with proper defaults
       const backendData = {
-        fullName: userData.fullName || userData.name || '',
+        name: userData.fullName || userData.name || '',
         email: userData.email || '',
         password: userData.password || '',
         role: (userData.role || 'USER').toUpperCase(),
