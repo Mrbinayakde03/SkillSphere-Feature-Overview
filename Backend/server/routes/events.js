@@ -18,8 +18,11 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
+
+
 // Public routes
 router.get('/inter', getInterEvents);
+router.get('/', getInterEvents); // General events endpoint for frontend
 router.get('/:id', getEventById);
 
 // Private routes

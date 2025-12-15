@@ -108,15 +108,41 @@ export function CreateEventModal({ onClose, onCreate, college }) {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Category *
               </label>
+
               <select
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
-                {categories.filter(c => c !== 'All').map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
+                <option value="">Select Category</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Hackathon">Hackathon</option>
+                <option value="Seminar">Seminar</option>
+                <option value="Competition">Competition</option>
+                <option value="Career Fair">Career Fair</option>
+                <option value="Networking">Networking</option>
+                <option value="Sports">Sports</option>
+                <option value="Quiz">Quiz</option>
+                <option value="Debate">Debate</option>
+                <option value="Poster Making">Poster Making</option>
+                <option value="Social Activity">Social Activity</option>
+                <option value="Cultural Event">Cultural Event</option>
+                <option value="Technical Event">Technical Event</option>
+                <option value="Literary Event">Literary Event</option>
+                <option value="Art & Craft">Art & Craft</option>
+                <option value="Music">Music</option>
+                <option value="Dance">Dance</option>
+                <option value="Drama">Drama</option>
+                <option value="Photography">Photography</option>
+                <option value="Gaming">Gaming</option>
+                <option value="Robotics">Robotics</option>
+                <option value="Research Presentation">Research Presentation</option>
+                <option value="Paper Presentation">Paper Presentation</option>
+                <option value="Project Exhibition">Project Exhibition</option>
+                <option value="Volunteer Work">Volunteer Work</option>
+                <option value="Environmental Activity">Environmental Activity</option>
+                <option value="Conference">Conference</option>
               </select>
             </div>
 

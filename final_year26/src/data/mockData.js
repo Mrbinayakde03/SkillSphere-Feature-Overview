@@ -1,9 +1,7 @@
-import { Event } from '../types/event';
-import { User } from '../types/user';
 
-export const mockUsers: User[] = [
+export const mockUsers = [
   {
-    id: '1',
+    id: '1', 
     name: 'Alex Johnson',
     email: 'alex.johnson@university.edu',
     role: 'student',
@@ -28,7 +26,8 @@ export const mockUsers: User[] = [
   }
 ];
 
-export const mockEvents: Event[] = [
+
+export const mockEvents = [
   {
     id: '1',
     title: 'AI & Machine Learning Workshop',

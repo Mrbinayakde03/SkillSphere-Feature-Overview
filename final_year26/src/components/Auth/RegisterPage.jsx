@@ -356,7 +356,7 @@ export function RegisterPage() {
         <div className="role-selection">
           {[
             { value: 'user', label: 'User', icon: User, desc: 'Participate in events' },
-            { value: 'organizer', label: 'Organizer', icon: Building, desc: 'Manage events & organizations' }
+            { value: 'organization', label: 'Organizer', icon: Building, desc: 'Manage events & organizations' }
           ].map(({ value, label, icon: Icon, desc }) => (
             <motion.button
               key={value}

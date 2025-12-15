@@ -1,7 +1,9 @@
 
 
+
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Organization from '../models/Organization.js';
 import { validationResult } from 'express-validator';
 
 const generateToken = (id) => {
@@ -76,15 +78,45 @@ export const register = async (req, res) => {
     }
 
     // Add ORGANIZATION-specific fields
-    if (role.toLowerCase() === 'organization' || role.toLowerCase() === 'organizer') {
+    if (role.toLowerCase() === 'organization') {
       userData.organizationName = organizationName;
       userData.organizationType = organizationType;
       userData.organizationDescription = organizationDescription;
       userData.officialEmailDomain = officialEmailDomain;
     }
 
+
     // Create user
     const user = await User.create(userData);
+
+    // If user registered as ORGANIZATION, create the corresponding Organization record
+    let organization = null;
+    if (role.toLowerCase() === 'organization') {
+      organization = await Organization.create({
+        name: organizationName,
+        description: organizationDescription,
+        adminUserId: user._id,
+        admin: user._id,
+        members: [user._id],
+        email: email,
+        type: organizationType,
+        category: 'academic', // Default category
+        isVerified: false,
+        isActive: true,
+        stats: {
+          totalMembers: 1,
+          totalEvents: 0,
+          totalParticipations: 0
+        },
+        settings: {
+          allowPublicRegistration: false,
+          requireDocumentation: true,
+          autoApproveMembers: false
+        }
+      });
+      
+      console.log('Created organization:', organization);
+    }
 
     // Generate token
     const token = generateToken(user._id);
@@ -94,6 +126,7 @@ export const register = async (req, res) => {
       message: 'User registered successfully',
       data: {
         user: user.toJSON(),
+        organization: organization ? organization.toJSON() : null,
         token
       }
     });

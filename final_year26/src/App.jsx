@@ -128,7 +128,8 @@ function AppRoutes() {
 
 
         {/* ========= ORGANIZATION ROUTES ========= */}
-        {user?.role === 'ORGANIZATION' && (
+
+        {user?.role && user.role.toLowerCase() === 'organization' && (
           <>
             <Route
               path="/dashboard"
@@ -175,7 +176,8 @@ function AppRoutes() {
 
 
         {/* ========= USER ROUTES ========= */}
-        {user?.role === 'USER' && (
+
+        {user?.role && user.role.toLowerCase() === 'user' && (
           <>
             <Route
               path="/dashboard"

@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Calendar, 
@@ -77,50 +79,88 @@ const iconVariants = {
   }
 };
 
+
 export function Sidebar({ user, isOpen, onClose }) {
   const { logout } = useAuth();
-
+  const navigate = useNavigate();
 
   const getNavigationItems = () => {
-    // Unified navigation for all user types with requested items
-    return [
-      { 
-        icon: Home, 
-        label: 'Home', 
-        href: '/',
-        description: 'Main dashboard'
-      },
-      { 
-        icon: Calendar, 
-        label: 'Events', 
-        href: user?.role === 'student' ? '/user/events' : '/dashboard',
-        description: 'Browse all events'
-      },
-      { 
-        icon: Users, 
-        label: 'Posts', 
-        href: '/posts',
-        description: 'Community posts'
-      },
-      { 
-        icon: Star, 
-        label: 'Create Event', 
-        href: '/create-event',
-        description: 'Organize new events'
-      },
-      { 
-        icon: User, 
-        label: 'Profile', 
-        href: '/user/profile',
-        description: 'Manage your profile'
-      },
-      { 
-        icon: Settings, 
-        label: 'Settings', 
-        href: '/settings',
-        description: 'Account settings'
-      }
-    ];
+    // Navigation based on user role
+
+    if (user?.role && user.role.toLowerCase() === 'user') {
+      return [
+        { 
+          icon: Home, 
+          label: 'Dashboard', 
+          href: '/dashboard',
+          description: 'Your dashboard'
+        },
+        { 
+          icon: Calendar, 
+          label: 'Events', 
+          href: '/user/events',
+          description: 'Browse all events'
+        },
+        { 
+          icon: Star, 
+          label: 'Recommended', 
+          href: '/user/recommended',
+          description: 'AI-powered recommendations'
+        },
+        { 
+          icon: User, 
+          label: 'Profile', 
+          href: '/user/profile',
+          description: 'Manage your profile'
+        }
+      ];
+
+    } else if (user?.role && user.role.toLowerCase() === 'organization') {
+      return [
+        { 
+          icon: Home, 
+          label: 'Dashboard', 
+          href: '/dashboard',
+          description: 'Organization dashboard'
+        },
+        { 
+          icon: Calendar, 
+          label: 'Events', 
+          href: '/organizer/events',
+          description: 'Manage events'
+        },
+        { 
+          icon: Users, 
+          label: 'Members', 
+          href: '/organizer/members/requests',
+          description: 'Membership requests'
+        },
+
+
+        { 
+          icon: Calendar, 
+          label: 'Create Event', 
+          href: '/organizer/events?action=create',
+          description: 'Organize new events'
+        }
+      ];
+    } else {
+      // Default navigation for other roles
+      return [
+        { 
+          icon: Home, 
+          label: 'Dashboard', 
+          href: '/dashboard',
+          description: 'Main dashboard'
+        },
+        { 
+          icon: User, 
+          label: 'Profile', 
+          href: '/user/profile',
+          description: 'Manage your profile'
+        }
+      ];
+    }
   };
 
 
@@ -182,18 +222,21 @@ export function Sidebar({ user, isOpen, onClose }) {
           {/* Navigation */}
           <nav className="sidebar-nav">
             <div className="sidebar-nav-items">
+
               {navigationItems.map((item, index) => (
 
-                <motion.a
+                <motion.button
                   key={item.href}
-                  href={item.href}
                   className="sidebar-nav-item"
                   variants={navItemVariants}
                   initial="hidden"
                   animate="visible"
                   transition={{ delay: index * 0.1 }}
                   whileHover="hover"
-                  onClick={() => onClose?.()}
+                  onClick={() => {
+                    navigate(item.href);
+                    onClose?.();
+                  }}
                   style={{ 
                     transformStyle: 'preserve-3d',
                     perspective: '1000px'
@@ -216,6 +259,7 @@ export function Sidebar({ user, isOpen, onClose }) {
                       {item.description}
                     </div>
                   </div>
+
                   <motion.div
                     className="sidebar-nav-indicator"
                     initial={{ scale: 0, rotateZ: 0 }}
@@ -226,7 +270,7 @@ export function Sidebar({ user, isOpen, onClose }) {
                     }}
                     transition={{ duration: 0.3 }}
                   />
-                </motion.a>
+                </motion.button>
               ))}
             </div>
 

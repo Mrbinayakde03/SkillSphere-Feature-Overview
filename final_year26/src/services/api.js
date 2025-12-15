@@ -1,8 +1,9 @@
 
+
 // API Configuration
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://your-production-api.com' 
-  : 'http://localhost:5001/api';
+  : 'http://localhost:5000/api';
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
@@ -42,7 +43,7 @@ export const authAPI = {
         fullName: userData.fullName || userData.name || '',
         email: userData.email || '',
         password: userData.password || '',
-        role: userData.role || 'student',
+        role: (userData.role || 'USER').toUpperCase(),
         college: userData.college || null,
         year: userData.year || null,
         skills: userData.skills || [],
@@ -160,7 +161,10 @@ export const organizationAPI = {
     method: 'PUT'
   }),
 
-  getOrganizationAnalytics: (orgId) => makeRequest(`/organizations/${orgId}/analytics`)
+
+  getOrganizationAnalytics: (orgId) => makeRequest(`/organizations/${orgId}/analytics`),
+
+  getUserOrganizations: () => makeRequest('/organizations/user/my-organizations')
 };
 
 // Event API
