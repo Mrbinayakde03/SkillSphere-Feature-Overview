@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const eventSchema = new mongoose.Schema({
+
   title: {
     type: String,
     required: true,
@@ -11,14 +12,20 @@ const eventSchema = new mongoose.Schema({
     required: true,
     maxlength: 2000
   },
+  organizationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Organization',
+    required: true
+  },
   category: {
     type: String,
     enum: ['Workshop', 'Hackathon', 'Seminar', 'Competition', 'Career Fair', 'Networking', 'Conference'],
     required: true
   },
+
   type: {
     type: String,
-    enum: ['inter', 'intra'],
+    enum: ['INTER', 'INTRA'],
     required: true
   },
   date: {

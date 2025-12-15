@@ -3,9 +3,11 @@
 
 
 
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   Search, 
   Menu, 
@@ -14,7 +16,12 @@ import {
   User,
   UserPlus,
   Bell,
-  Settings
+  Settings,
+  Calendar,
+  Users,
+  Building,
+  LogOut,
+  Eye
 } from 'lucide-react';
 
 const headerVariants = {
@@ -72,10 +79,12 @@ const toggleButtonVariants = {
 
 
 
+
 export function Header({ user, onMenuToggle }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [notificationCount] = useState(3); // Mock notification count
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogin = () => {
     navigate('/login');
@@ -83,6 +92,108 @@ export function Header({ user, onMenuToggle }) {
 
   const handleRegister = () => {
     navigate('/register');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const getDashboardRoute = () => {
+    if (!user?.role) return '/dashboard';
+    
+    switch (user.role.toUpperCase()) {
+      case 'USER':
+        return '/dashboard/user';
+      case 'ORGANIZATION':
+        return '/dashboard/organization';
+      case 'ADMIN':
+        return '/dashboard/admin';
+      default:
+        return '/dashboard';
+    }
+  };
+
+  const renderRoleBasedNavigation = () => {
+    if (!user?.role) return null;
+
+    const navigationItems = [];
+
+    // Common dashboard link
+    navigationItems.push({
+      icon: Home,
+      label: 'Dashboard',
+      path: getDashboardRoute(),
+      key: 'dashboard'
+    });
+
+    // Role-specific navigation
+    switch (user.role.toUpperCase()) {
+      case 'USER':
+        navigationItems.push(
+          {
+            icon: Eye,
+            label: 'Inter Events',
+            path: '/user/events',
+            key: 'inter-events'
+          },
+          {
+            icon: Users,
+            label: 'Organizations',
+            path: '/user/organizations',
+            key: 'organizations'
+          },
+          {
+            icon: Calendar,
+            label: 'My Events',
+            path: '/user/my-events',
+            key: 'my-events'
+          }
+        );
+        break;
+        
+      case 'ORGANIZATION':
+        navigationItems.push(
+          {
+            icon: Calendar,
+            label: 'Events',
+            path: '/organizer/events',
+            key: 'events'
+          },
+          {
+            icon: Users,
+            label: 'Members',
+            path: '/organizer/members/requests',
+            key: 'members'
+          },
+          {
+            icon: Building,
+            label: 'Organization',
+            path: '/organizer/organization',
+            key: 'organization'
+          }
+        );
+        break;
+        
+      case 'ADMIN':
+        navigationItems.push(
+          {
+            icon: Users,
+            label: 'Users',
+            path: '/admin/users',
+            key: 'users'
+          },
+          {
+            icon: Building,
+            label: 'Organizations',
+            path: '/admin/organizations',
+            key: 'admin-organizations'
+          }
+        );
+        break;
+    }
+
+    return navigationItems;
   };
 
   return (
@@ -125,6 +236,7 @@ export function Header({ user, onMenuToggle }) {
 
 
 
+
         {/* Center Section - Navigation */}
         <div className="header-center">
           <nav className="header-nav">
@@ -151,6 +263,23 @@ export function Header({ user, onMenuToggle }) {
               <Info className="w-4 h-4" />
               About
             </motion.button>
+            
+            {/* Role-based navigation items */}
+            {renderRoleBasedNavigation()?.map((item, index) => (
+              <motion.button 
+                key={item.key}
+                onClick={() => navigate(item.path)}
+                className="nav-link"
+                variants={navLinkVariants}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.1 + (index * 0.05) }}
+                whileHover="hover"
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </motion.button>
+            ))}
           </nav>
         </div>
 
@@ -217,6 +346,7 @@ export function Header({ user, onMenuToggle }) {
                 <Settings className="w-5 h-5" />
               </motion.button>
 
+
               {/* User Profile */}
               <div className="user-profile">
                 <div className="user-avatar">
@@ -227,9 +357,20 @@ export function Header({ user, onMenuToggle }) {
                     {user?.name || 'User'}
                   </span>
                   <span className="user-role">
-                    {user?.role || 'user'}
+                    {user?.role === 'user' ? 'USER' : user?.role || 'USER'}
                   </span>
                 </div>
+                {/* Logout Button */}
+                <motion.button 
+                  onClick={handleLogout}
+                  className="logout-btn"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </motion.button>
               </div>
             </div>
           )}

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+
 const organizationSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -11,6 +12,15 @@ const organizationSchema = new mongoose.Schema({
     required: true,
     maxlength: 1000
   },
+  adminUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  members: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   logo: {
     type: String,
     default: null
@@ -51,39 +61,20 @@ const organizationSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  members: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    role: {
-      type: String,
-      enum: ['member', 'moderator', 'admin'],
-      default: 'member'
-    },
-    joinedDate: {
-      type: Date,
-      default: Date.now
-    }
-  }],
+
   pendingRequests: [{
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
-    },
-    documents: [{
-      fileName: String,
-      filePath: String,
-      uploadDate: Date
-    }],
-    requestDate: {
-      type: Date,
-      default: Date.now
     },
     status: {
       type: String,
-      enum: ['pending', 'approved', 'rejected'],
-      default: 'pending'
+      enum: ['PENDING', 'ACCEPTED', 'REJECTED'],
+      default: 'PENDING'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
     }
   }],
   isVerified: {
@@ -127,14 +118,24 @@ const organizationSchema = new mongoose.Schema({
       default: 0
     }
   }
+
 }, {
   timestamps: true
 });
 
+// Add createdAt field explicitly
+organizationSchema.add({
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+
 // Update stats before saving
 organizationSchema.pre('save', function(next) {
   if (this.isModified('members')) {
-    this.stats.totalMembers = this.members.filter(member => member.role !== 'removed').length;
+    this.stats.totalMembers = this.members.length;
   }
   next();
 });

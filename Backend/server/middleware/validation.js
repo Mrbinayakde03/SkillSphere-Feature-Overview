@@ -18,10 +18,12 @@ export const registerValidation = [
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters long'),
   
+
+
   body('role')
     .optional()
-    .isIn(['student', 'organizer', 'admin'])
-    .withMessage('Role must be student, organizer, or admin')
+    .isIn(['USER', 'ORGANIZATION'])
+    .withMessage('Role must be USER or ORGANIZATION')
 ];
 
 export const loginValidation = [

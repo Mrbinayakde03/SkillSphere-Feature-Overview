@@ -1,39 +1,29 @@
 import Organization from '../models/Organization.js';
 import User from '../models/User.js';
-import { validationResult } from 'express-validator';
+import JoinRequest from '../models/JoinRequest.js';
+import Event from '../models/Event.js';
 
 // @desc    Create organization
 // @route   POST /api/organizations
-// @access  Private (Organizer/Admin)
+// @access  Private (ORGANIZATION role)
 export const createOrganization = async (req, res) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
+    const { name, description } = req.body;
+
+    // Check if user is ORGANIZATION role
+    if (req.user.role !== 'ORGANIZATION') {
+      return res.status(403).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array()
+        message: 'Only organization users can create organizations'
       });
     }
 
-    const {
-      name,
-      description,
-      website,
-      email,
-      type,
-      category,
-      address,
-      contactPerson
-    } = req.body;
-
-    // Check if organization name already exists
-    const existingOrg = await Organization.findOne({ name });
+    // Check if user already has an organization
+    const existingOrg = await Organization.findOne({ adminUserId: req.user._id });
     if (existingOrg) {
       return res.status(400).json({
         success: false,
-        message: 'Organization with this name already exists'
+        message: 'User already has an organization'
       });
     }
 
@@ -41,26 +31,13 @@ export const createOrganization = async (req, res) => {
     const organization = await Organization.create({
       name,
       description,
-      website,
-      email,
-      type,
-      category,
-      address,
-      contactPerson,
-      admin: req.user._id,
-      members: [{
-        user: req.user._id,
-        role: 'admin',
-        joinedDate: new Date()
-      }]
+      adminUserId: req.user._id,
+      members: [req.user._id] // Admin is also a member
     });
 
-    // Add admin to members array
-    const adminUser = await User.findById(req.user._id);
-    if (adminUser && adminUser.role === 'student') {
-      adminUser.role = 'organizer';
-      await adminUser.save();
-    }
+    // Add organization to user's joinedOrganizations
+    req.user.joinedOrganizations.push(organization._id);
+    await req.user.save();
 
     res.status(201).json({
       success: true,
@@ -72,7 +49,8 @@ export const createOrganization = async (req, res) => {
     console.error('Create organization error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error during organization creation',
+      details: error.message
     });
   }
 };
@@ -82,53 +60,22 @@ export const createOrganization = async (req, res) => {
 // @access  Public
 export const getOrganizations = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 12, 
-      type, 
-      category, 
-      search, 
-      verified,
-      sort = '-createdAt' 
-    } = req.query;
-    
-    const query = { isActive: true };
-    
-    if (type) query.type = type;
-    if (category) query.category = category;
-    if (verified !== undefined) query.isVerified = verified === 'true';
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    const organizations = await Organization.find(query)
-      .populate('admin', 'name email')
-      .sort(sort)
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Organization.countDocuments(query);
+    const organizations = await Organization.find()
+      .populate('adminUserId', 'name email')
+      .populate('members', 'name email')
+      .sort({ createdAt: -1 });
 
     res.json({
       success: true,
-      data: {
-        organizations,
-        pagination: {
-          current: page,
-          pages: Math.ceil(total / limit),
-          total
-        }
-      }
+      data: { organizations }
     });
 
   } catch (error) {
     console.error('Get organizations error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      details: error.message
     });
   }
 };
@@ -139,11 +86,11 @@ export const getOrganizations = async (req, res) => {
 export const getOrganizationById = async (req, res) => {
   try {
     const organization = await Organization.findById(req.params.id)
-      .populate('admin', 'name email')
-      .populate('members.user', 'name email profileImage')
-      .populate('verifiedBy', 'name');
+      .populate('adminUserId', 'name email')
+      .populate('members', 'name email')
+      .populate('pendingRequests.userId', 'name email');
 
-    if (!organization || !organization.isActive) {
+    if (!organization) {
       return res.status(404).json({
         success: false,
         message: 'Organization not found'
@@ -159,85 +106,28 @@ export const getOrganizationById = async (req, res) => {
     console.error('Get organization by ID error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      details: error.message
     });
   }
 };
 
-// @desc    Update organization
-// @route   PUT /api/organizations/:id
-// @access  Private (Organization admin)
-export const updateOrganization = async (req, res) => {
+// @desc    Send join request to organization
+// @route   POST /api/organizations/:id/join
+// @access  Private (USER role)
+export const sendJoinRequest = async (req, res) => {
   try {
-    const organization = await Organization.findById(req.params.id);
+    const { id } = req.params;
 
-    if (!organization) {
-      return res.status(404).json({
-        success: false,
-        message: 'Organization not found'
-      });
-    }
-
-    // Check if user is admin of this organization
-    const isAdmin = organization.admin.toString() === req.user._id.toString() ||
-                   organization.members.some(member => 
-                     member.user.toString() === req.user._id.toString() && member.role === 'admin'
-                   );
-
-    if (!isAdmin && req.user.role !== 'admin') {
+    // Check if user is USER role
+    if (req.user.role !== 'USER') {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to update this organization'
+        message: 'Only users can send join requests'
       });
     }
 
-    const {
-      name,
-      description,
-      website,
-      email,
-      type,
-      category,
-      address,
-      contactPerson,
-      settings
-    } = req.body;
-
-    // Update fields
-    if (name) organization.name = name;
-    if (description) organization.description = description;
-    if (website) organization.website = website;
-    if (email) organization.email = email;
-    if (type) organization.type = type;
-    if (category) organization.category = category;
-    if (address) organization.address = address;
-    if (contactPerson) organization.contactPerson = contactPerson;
-    if (settings) organization.settings = { ...organization.settings, ...settings };
-
-    await organization.save();
-
-    res.json({
-      success: true,
-      message: 'Organization updated successfully',
-      data: { organization }
-    });
-
-  } catch (error) {
-    console.error('Update organization error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Delete organization
-// @route   DELETE /api/organizations/:id
-// @access  Private (Admin only)
-export const deleteOrganization = async (req, res) => {
-  try {
-    const organization = await Organization.findById(req.params.id);
-
+    const organization = await Organization.findById(id);
     if (!organization) {
       return res.status(404).json({
         success: false,
@@ -245,105 +135,66 @@ export const deleteOrganization = async (req, res) => {
       });
     }
 
-    // Soft delete
-    organization.isActive = false;
-    await organization.save();
-
-    res.json({
-      success: true,
-      message: 'Organization deactivated successfully'
-    });
-
-  } catch (error) {
-    console.error('Delete organization error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Request to join organization
-// @route   POST /api/organizations/:id/join
-// @access  Private (Student)
-export const requestToJoin = async (req, res) => {
-  try {
-    const organization = await Organization.findById(req.params.id);
-
-    if (!organization) {
-      return res.status(404).json({
-        success: false,
-        message: 'Organization not found'
-      });
-    }
-
-    // Check if already a member
-    const existingMember = organization.members.find(
-      member => member.user.toString() === req.user._id.toString()
-    );
-
-    if (existingMember) {
+    // Check if user is already a member
+    if (organization.members.includes(req.user._id)) {
       return res.status(400).json({
         success: false,
-        message: 'Already a member of this organization'
+        message: 'User is already a member'
       });
     }
 
-    // Check if already requested
-    const existingRequest = organization.pendingRequests.find(
-      request => request.user.toString() === req.user._id.toString() && request.status === 'pending'
-    );
+    // Check if request already exists
+    const existingRequest = await JoinRequest.findOne({
+      userId: req.user._id,
+      organizationId: id
+    });
 
     if (existingRequest) {
       return res.status(400).json({
         success: false,
-        message: 'Join request already pending'
+        message: 'Join request already exists'
       });
     }
 
-    // Add request
-    organization.pendingRequests.push({
-      user: req.user._id,
-      requestDate: new Date(),
-      status: 'pending'
+    // Create join request
+    const joinRequest = await JoinRequest.create({
+      userId: req.user._id,
+      organizationId: id,
+      status: 'PENDING'
     });
 
+    // Add to organization's pending requests
+    organization.pendingRequests.push({
+      userId: req.user._id,
+      status: 'PENDING'
+    });
     await organization.save();
 
-    // Also add to user's organizationRequests
-    const user = await User.findById(req.user._id);
-    user.organizationRequests.push({
-      organizationId: organization._id,
-      status: 'pending',
-      requestDate: new Date()
-    });
-    await user.save();
-
-    res.json({
+    res.status(201).json({
       success: true,
-      message: 'Join request submitted successfully'
+      message: 'Join request sent successfully',
+      data: { joinRequest }
     });
 
   } catch (error) {
-    console.error('Request to join error:', error);
+    console.error('Send join request error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      details: error.message
     });
   }
 };
 
-
-// @desc    Approve/Reject member request
-// @route   PUT /api/organizations/:id/members/:userId
-// @access  Private (Organization admin)
-export const manageMemberRequest = async (req, res) => {
+// @desc    Accept/Reject join request
+// @route   PUT /api/organizations/:id/requests/:userId
+// @access  Private (Organization Admin only)
+export const handleJoinRequest = async (req, res) => {
   try {
-    const { action } = req.body; // 'approve' or 'reject'
-    const { userId } = req.params;
+    const { id, userId } = req.params;
+    const { status } = req.body; // 'ACCEPTED' or 'REJECTED'
 
-    const organization = await Organization.findById(req.params.id);
-
+    const organization = await Organization.findById(id);
     if (!organization) {
       return res.status(404).json({
         success: false,
@@ -351,87 +202,89 @@ export const manageMemberRequest = async (req, res) => {
       });
     }
 
-    // Check if user is admin
-    const isAdmin = organization.admin.toString() === req.user._id.toString() ||
-                   organization.members.some(member => 
-                     member.user.toString() === req.user._id.toString() && member.role === 'admin'
-                   );
-
-    if (!isAdmin) {
+    // Check if user is organization admin
+    if (organization.adminUserId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to manage members'
+        message: 'Only organization admin can handle join requests'
       });
     }
 
-    const requestIndex = organization.pendingRequests.findIndex(
-      request => request.user.toString() === userId && request.status === 'pending'
+    if (!['ACCEPTED', 'REJECTED'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be ACCEPTED or REJECTED'
+      });
+    }
+
+    // Update join request
+    const joinRequest = await JoinRequest.findOneAndUpdate(
+      { userId, organizationId: id },
+      { status },
+      { new: true }
     );
 
-    if (requestIndex === -1) {
+    if (!joinRequest) {
       return res.status(404).json({
         success: false,
         message: 'Join request not found'
       });
     }
 
-    if (action === 'approve') {
-      // Move from pending to members
-      const request = organization.pendingRequests[requestIndex];
-      organization.members.push({
-        user: request.user,
-        role: 'member',
-        joinedDate: new Date()
-      });
-      
-      // Update user status
-      const user = await User.findById(userId);
-      const userRequestIndex = user.organizationRequests.findIndex(
-        req => req.organizationId.toString() === organization._id.toString()
-      );
-      
-      if (userRequestIndex !== -1) {
-        user.organizationRequests[userRequestIndex].status = 'approved';
-        await user.save();
-      }
+    // Update organization's pending requests
+    const pendingRequest = organization.pendingRequests.find(
+      req => req.userId.toString() === userId
+    );
+    if (pendingRequest) {
+      pendingRequest.status = status;
+      await organization.save();
+    }
 
-    } else if (action === 'reject') {
-      // Update user status
-      const user = await User.findById(userId);
-      const userRequestIndex = user.organizationRequests.findIndex(
-        req => req.organizationId.toString() === organization._id.toString()
-      );
+    // If accepted, add user to organization members and user's joinedOrganizations
+    if (status === 'ACCEPTED') {
+      // Add to organization members
+      if (!organization.members.includes(userId)) {
+        organization.members.push(userId);
+      }
       
-      if (userRequestIndex !== -1) {
-        user.organizationRequests[userRequestIndex].status = 'rejected';
+      // Remove from pending requests
+      organization.pendingRequests = organization.pendingRequests.filter(
+        req => req.userId.toString() !== userId
+      );
+      await organization.save();
+
+      // Add to user's joinedOrganizations
+      const user = await User.findById(userId);
+      if (!user.joinedOrganizations.includes(id)) {
+        user.joinedOrganizations.push(id);
         await user.save();
       }
     }
 
-    // Remove from pending requests
-    organization.pendingRequests.splice(requestIndex, 1);
-    await organization.save();
-
     res.json({
       success: true,
-      message: `Member request ${action}d successfully`
+      message: `Join request ${status.toLowerCase()} successfully`,
+      data: { joinRequest }
     });
 
   } catch (error) {
-    console.error('Manage member request error:', error);
+    console.error('Handle join request error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      details: error.message
     });
   }
 };
 
-// @desc    Verify organization (Admin only)
-// @route   PUT /api/organizations/:id/verify
-// @access  Private/Admin
-export const verifyOrganization = async (req, res) => {
+// @desc    Get organization's members
+// @route   GET /api/organizations/:id/members
+// @access  Private (Organization Admin only)
+export const getOrganizationMembers = async (req, res) => {
   try {
-    const organization = await Organization.findById(req.params.id);
+    const organization = await Organization.findById(req.params.id)
+      .populate('members', 'name email college year')
+      .populate('adminUserId', 'name email');
 
     if (!organization) {
       return res.status(404).json({
@@ -440,74 +293,80 @@ export const verifyOrganization = async (req, res) => {
       });
     }
 
-    organization.isVerified = true;
-    organization.verificationDate = new Date();
-    organization.verifiedBy = req.user._id;
+    // Check if user is organization admin or member
+    const isAdmin = organization.adminUserId._id.toString() === req.user._id.toString();
+    const isMember = organization.members.some(member => 
+      member._id.toString() === req.user._id.toString()
+    );
 
-    await organization.save();
-
-    res.json({
-      success: true,
-      message: 'Organization verified successfully',
-      data: { organization }
-    });
-
-  } catch (error) {
-    console.error('Verify organization error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get organization analytics
-// @route   GET /api/organizations/:id/analytics
-// @access  Private (Organization admin)
-export const getOrganizationAnalytics = async (req, res) => {
-  try {
-    const organization = await Organization.findById(req.params.id);
-
-    if (!organization) {
-      return res.status(404).json({
-        success: false,
-        message: 'Organization not found'
-      });
-    }
-
-    // Check authorization
-    const isAdmin = organization.admin.toString() === req.user._id.toString() ||
-                   organization.members.some(member => 
-                     member.user.toString() === req.user._id.toString() && member.role === 'admin'
-                   );
-
-    if (!isAdmin && req.user.role !== 'admin') {
+    if (!isAdmin && !isMember) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to view analytics'
+        message: 'Access denied'
       });
     }
 
-    // Get analytics data (would need to implement with actual event data)
-    const analytics = {
-      totalMembers: organization.stats.totalMembers,
-      totalEvents: organization.stats.totalEvents,
-      totalParticipations: organization.stats.totalParticipations,
-      pendingRequests: organization.pendingRequests.length,
-      memberGrowth: [], // Would calculate from member join dates
-      eventParticipation: [] // Would calculate from events
-    };
-
     res.json({
       success: true,
-      data: { analytics }
+      data: { 
+        members: organization.members,
+        admin: organization.adminUserId
+      }
     });
 
   } catch (error) {
-    console.error('Get organization analytics error:', error);
+    console.error('Get organization members error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      details: error.message
+    });
+  }
+};
+
+// @desc    Get user's organizations
+// @route   GET /api/organizations/user/my-organizations
+// @access  Private
+export const getUserOrganizations = async (req, res) => {
+  try {
+    const organizations = await Organization.find({
+      members: req.user._id
+    }).populate('adminUserId', 'name email');
+
+    res.json({
+      success: true,
+      data: { organizations }
+    });
+
+  } catch (error) {
+    console.error('Get user organizations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      details: error.message
+    });
+  }
+};
+
+// @desc    Get user's join requests
+// @route   GET /api/organizations/user/join-requests
+// @access  Private
+export const getUserJoinRequests = async (req, res) => {
+  try {
+    const joinRequests = await JoinRequest.find({ userId: req.user._id })
+      .populate('organizationId', 'name description');
+
+    res.json({
+      success: true,
+      data: { joinRequests }
+    });
+
+  } catch (error) {
+    console.error('Get user join requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      details: error.message
     });
   }
 };

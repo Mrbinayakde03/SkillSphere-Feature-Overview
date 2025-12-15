@@ -4,9 +4,10 @@ import Organization from '../models/Organization.js';
 import User from '../models/User.js';
 import { validationResult } from 'express-validator';
 
+
 // @desc    Create event
 // @route   POST /api/events
-// @access  Private (Organizer/Admin)
+// @access  Private (ORGANIZATION role)
 export const createEvent = async (req, res) => {
   try {
     // Check for validation errors
@@ -19,40 +20,62 @@ export const createEvent = async (req, res) => {
       });
     }
 
-    const eventData = {
-      ...req.body,
-      organizer: {
-        user: req.user._id,
-        name: req.user.name,
-        college: req.body.college || req.user.college
-      }
-    };
+    const { 
+      title, 
+      description, 
+      category, 
+      type, 
+      date, 
+      time, 
+      location,
+      organizationId 
+    } = req.body;
 
-    // If it's an intra event, check if user has organization
-    if (eventData.type === 'intra') {
-      const organization = await Organization.findOne({
-        admin: req.user._id
+    // Check if user is ORGANIZATION role
+    if (req.user.role !== 'ORGANIZATION') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only organizations can create events'
       });
+    }
 
-      if (!organization) {
-        return res.status(400).json({
-          success: false,
-          message: 'You must be an organization admin to create intra events'
-        });
+    // Verify the organization belongs to this user
+    const organization = await Organization.findById(organizationId);
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found'
+      });
+    }
+
+    if (organization.adminUserId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only organization admin can create events'
+      });
+    }
+
+    const event = await Event.create({
+      title,
+      description,
+      category,
+      type,
+      date,
+      time,
+      location,
+      organizationId,
+      organizer: {
+        name: req.user.name,
+        user: req.user._id,
+        college: req.user.organizationName || 'Organization'
       }
+    });
 
-      eventData.organizer.organization = organization._id;
-    }
-
-    const event = await Event.create(eventData);
-
-    // Update organization stats if applicable
-    if (eventData.organizer.organization) {
-      await Organization.findByIdAndUpdate(
-        eventData.organizer.organization,
-        { $inc: { 'stats.totalEvents': 1 } }
-      );
-    }
+    // Update organization stats
+    await Organization.findByIdAndUpdate(
+      organizationId,
+      { $inc: { 'stats.totalEvents': 1 } }
+    );
 
     res.status(201).json({
       success: true,
@@ -64,34 +87,33 @@ export const createEvent = async (req, res) => {
     console.error('Create event error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      details: error.message
     });
+
   }
 };
 
-// @desc    Get all events
-// @route   GET /api/events
+// @desc    Get INTER events (public)
+// @route   GET /api/events/inter
 // @access  Public
-export const getEvents = async (req, res) => {
+export const getInterEvents = async (req, res) => {
   try {
     const {
       page = 1,
       limit = 12,
       category,
-      type,
-      status,
       search,
-      college,
       upcoming = 'true',
       sort = '-createdAt'
     } = req.query;
 
-    const query = { isActive: true };
+    const query = { 
+      type: 'INTER',
+      status: 'upcoming' 
+    };
     
     if (category) query.category = category;
-    if (type) query.type = type;
-    if (status) query.status = status;
-    if (college) query['organizer.college'] = { $regex: college, $options: 'i' };
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -104,30 +126,9 @@ export const getEvents = async (req, res) => {
       query.date = { $gte: new Date() };
     }
 
-    // Handle visibility based on user
-    if (req.user) {
-      // If user is admin, show all events
-      if (req.user.role !== 'admin') {
-        // For inter events, show public ones
-        // For intra events, show only if user is member of the organization
-        const userOrgs = await Organization.find({
-          'members.user': req.user._id
-        }).select('_id');
-
-        query.$or = [
-          { type: 'inter', visibility: 'public' },
-          { type: 'intra', 'organizer.organization': { $in: userOrgs.map(org => org._id) } }
-        ];
-      }
-    } else {
-      // No user logged in, show only public inter events
-      query.type = 'inter';
-      query.visibility = 'public';
-    }
-
     const events = await Event.find(query)
+      .populate('organizationId', 'name logo')
       .populate('organizer.user', 'name email')
-      .populate('organizer.organization', 'name logo')
       .sort(sort)
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -147,13 +148,107 @@ export const getEvents = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get events error:', error);
+    console.error('Get INTER events error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      details: error.message
     });
   }
 };
+
+// @desc    Get INTRA events (authorized users only)
+// @route   GET /api/events/intra
+// @access  Private (Users who are members of organizations)
+export const getIntraEvents = async (req, res) => {
+  try {
+    // Check if user is USER role and has joined organizations
+    if (req.user.role !== 'USER') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only users can access intra events'
+      });
+    }
+
+    const user = await User.findById(req.user._id).populate('joinedOrganizations');
+    
+    if (!user.joinedOrganizations || user.joinedOrganizations.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          events: [],
+          pagination: {
+            current: 1,
+            pages: 0,
+            total: 0
+          }
+        }
+      });
+    }
+
+    const {
+      page = 1,
+      limit = 12,
+      category,
+      search,
+      upcoming = 'true',
+      sort = '-createdAt'
+    } = req.query;
+
+    const organizationIds = user.joinedOrganizations.map(org => org._id);
+
+    const query = { 
+      type: 'INTRA',
+      organizationId: { $in: organizationIds },
+      status: 'upcoming'
+    };
+    
+    if (category) query.category = category;
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Show upcoming events by default
+    if (upcoming === 'true') {
+      query.date = { $gte: new Date() };
+    }
+
+    const events = await Event.find(query)
+      .populate('organizationId', 'name logo')
+      .populate('organizer.user', 'name email')
+      .sort(sort)
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Event.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        events,
+        pagination: {
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get INTRA events error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      details: error.message
+    });
+  }
+};
+
+
+
 
 // @desc    Get event by ID
 // @route   GET /api/events/:id

@@ -51,18 +51,19 @@ export const register = async (req, res) => {
       });
     }
 
+
     // Prepare user data based on role
     let userData = {
       name: fullName,
       email,
       password,
-      role: role === 'user' ? 'student' : role, // Convert 'user' to 'student'
-      college: college || null, // Make college optional
+      role: role.toUpperCase(), // Convert to uppercase for USER/ORGANIZATION
+      college: college || null,
       year: year || null
     };
 
-    // Add student-specific fields
-    if (role === 'user' || role === 'student') {
+    // Add USER-specific fields
+    if (role.toLowerCase() === 'user') {
       userData.skills = skills || [];
       userData.interests = interests || [];
       userData.educationLevel = educationLevel;
@@ -74,13 +75,12 @@ export const register = async (req, res) => {
       }
     }
 
-    // Add organizer-specific fields
-    if (role === 'organizer') {
+    // Add ORGANIZATION-specific fields
+    if (role.toLowerCase() === 'organization' || role.toLowerCase() === 'organizer') {
       userData.organizationName = organizationName;
       userData.organizationType = organizationType;
       userData.organizationDescription = organizationDescription;
       userData.officialEmailDomain = officialEmailDomain;
-      // Organizers don't need college and year
     }
 
     // Create user

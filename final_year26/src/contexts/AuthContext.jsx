@@ -96,6 +96,7 @@ const authReducer = (state, action) => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
+
   // Check for existing token on mount
   useEffect(() => {
     const checkAuth = async () => {
@@ -104,10 +105,14 @@ export const AuthProvider = ({ children }) => {
         setAuthToken(token);
         try {
           const response = await authAPI.getMe();
-          dispatch({
-            type: AUTH_ACTIONS.SET_USER,
-            payload: response.data.user
-          });
+          if (response.data?.user) {
+            dispatch({
+              type: AUTH_ACTIONS.SET_USER,
+              payload: response.data.user
+            });
+          } else {
+            throw new Error('Invalid user data');
+          }
         } catch (error) {
           console.error('Token validation failed:', error);
           clearAuthData();
@@ -118,6 +123,7 @@ export const AuthProvider = ({ children }) => {
 
     checkAuth();
   }, []);
+
 
   // Login function
   const login = async (credentials) => {
@@ -133,7 +139,11 @@ export const AuthProvider = ({ children }) => {
         payload: { user, token }
       });
       
-      return { success: true, data: response.data };
+      return { 
+        success: true, 
+        data: response.data,
+        redirect: getDashboardPath(user.role)
+      };
     } catch (error) {
       const errorMessage = error.message || 'Login failed';
       dispatch({
@@ -195,6 +205,21 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
   };
 
+
+  // Helper function to determine dashboard path based on role
+  const getDashboardPath = (role) => {
+    switch (role) {
+      case 'USER':
+        return '/dashboard/user';
+      case 'ORGANIZATION':
+        return '/dashboard/organization';
+      case 'admin':
+        return '/dashboard/admin';
+      default:
+        return '/dashboard';
+    }
+  };
+
   const value = {
     // State
     ...state,
@@ -204,7 +229,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
-    clearError
+    clearError,
+    getDashboardPath
   };
 
   return (

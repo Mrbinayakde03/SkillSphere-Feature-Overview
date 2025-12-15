@@ -126,13 +126,24 @@ function AppRoutes() {
           </>
         )}
 
-        {/* ========= ORGANIZER ROUTES ========= */}
-        {user?.role === 'organizer' && (
+
+        {/* ========= ORGANIZATION ROUTES ========= */}
+        {user?.role === 'ORGANIZATION' && (
           <>
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute requiredRole="organizer">
+                <ProtectedRoute requiredRole="ORGANIZATION">
+                  <OrganizerLayout>
+                    <OrganizerDashboardPage />
+                  </OrganizerLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/organization"
+              element={
+                <ProtectedRoute requiredRole="ORGANIZATION">
                   <OrganizerLayout>
                     <OrganizerDashboardPage />
                   </OrganizerLayout>
@@ -142,7 +153,7 @@ function AppRoutes() {
             <Route
               path="/organizer/events"
               element={
-                <ProtectedRoute requiredRole="organizer">
+                <ProtectedRoute requiredRole="ORGANIZATION">
                   <OrganizerLayout>
                     <OrganizerEventsPage />
                   </OrganizerLayout>
@@ -152,7 +163,7 @@ function AppRoutes() {
             <Route
               path="/organizer/members/requests"
               element={
-                <ProtectedRoute requiredRole="organizer">
+                <ProtectedRoute requiredRole="ORGANIZATION">
                   <OrganizerLayout>
                     <OrganizerMembersPage />
                   </OrganizerLayout>
@@ -162,13 +173,24 @@ function AppRoutes() {
           </>
         )}
 
-        {/* ========= USER / STUDENT ROUTES ========= */}
-        {(user?.role === 'student' || user?.role === 'user') && (
+
+        {/* ========= USER ROUTES ========= */}
+        {user?.role === 'USER' && (
           <>
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute requiredRole="student">
+                <ProtectedRoute requiredRole="USER">
+                  <UserLayout>
+                    <UserDashboardPage />
+                  </UserLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/user"
+              element={
+                <ProtectedRoute requiredRole="USER">
                   <UserLayout>
                     <UserDashboardPage />
                   </UserLayout>
@@ -178,7 +200,7 @@ function AppRoutes() {
             <Route
               path="/user/recommended"
               element={
-                <ProtectedRoute requiredRole="student">
+                <ProtectedRoute requiredRole="USER">
                   <UserLayout>
                     <UserRecommendedPage />
                   </UserLayout>
@@ -188,7 +210,7 @@ function AppRoutes() {
             <Route
               path="/user/events"
               element={
-                <ProtectedRoute requiredRole="student">
+                <ProtectedRoute requiredRole="USER">
                   <UserLayout>
                     <UserEventsPage />
                   </UserLayout>
@@ -198,7 +220,7 @@ function AppRoutes() {
             <Route
               path="/user/my-events"
               element={
-                <ProtectedRoute requiredRole="student">
+                <ProtectedRoute requiredRole="USER">
                   <UserLayout>
                     <StudentDashboard />
                   </UserLayout>
@@ -208,7 +230,7 @@ function AppRoutes() {
             <Route
               path="/user/profile"
               element={
-                <ProtectedRoute requiredRole="student">
+                <ProtectedRoute requiredRole="USER">
                   <UserLayout>
                     <UserProfilePage />
                   </UserLayout>

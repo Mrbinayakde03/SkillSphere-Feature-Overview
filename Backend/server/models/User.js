@@ -20,54 +20,60 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6
   },
+
   role: {
     type: String,
-    enum: ['student', 'organizer', 'admin'],
-    default: 'student'
+    enum: ['USER', 'ORGANIZATION'],
+    required: true
   },
+  joinedOrganizations: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Organization'
+  }],
+
   college: {
     type: String,
     required: function() {
-      return this.role === 'student';
+      return this.role === 'USER';
     }
   },
   year: {
     type: String,
     enum: ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Graduate', 'Alumni', 'Other'],
     required: function() {
-      return this.role === 'student';
+      return this.role === 'USER';
     }
   },
   educationLevel: {
     type: String,
     required: function() {
-      return this.role === 'student';
+      return this.role === 'USER';
     }
   },
   // Organization-specific fields
   organizationName: {
     type: String,
     required: function() {
-      return this.role === 'organizer';
+      return this.role === 'ORGANIZATION';
     }
   },
   organizationType: {
     type: String,
     enum: ['university', 'college', 'school', 'club'],
     required: function() {
-      return this.role === 'organizer';
+      return this.role === 'ORGANIZATION';
     }
   },
   organizationDescription: {
     type: String,
     required: function() {
-      return this.role === 'organizer';
+      return this.role === 'ORGANIZATION';
     }
   },
   officialEmailDomain: {
     type: String,
     required: function() {
-      return this.role === 'organizer';
+      return this.role === 'ORGANIZATION';
     }
   },
   profileImage: {

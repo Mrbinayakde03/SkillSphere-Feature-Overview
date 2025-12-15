@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -9,10 +8,15 @@ import {
   Star,
   Brain,
   Award,
-  BookOpen
+  BookOpen,
+  Eye,
+  UserPlus,
+  Clock,
+  MapPin
 } from 'lucide-react';
-import { EventCard, EventCard3D } from '../../components/EventCard3D';
+import { useAuth } from '../../contexts/AuthContext';
 import { eventAPI } from '../../services/api';
+import { organizationAPI } from '../../services/api';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -46,82 +50,96 @@ const cardVariants = {
   }
 };
 
-const stats = [
-  {
-    icon: Calendar,
-    label: 'Events Registered',
-    value: '5',
-    change: '+2 this month',
-    trend: 'up',
-    color: 'neon-cyan'
-  },
-  {
-    icon: Users,
-    label: 'Organizations',
-    value: '3',
-    change: '+1 this week',
-    trend: 'up',
-    color: 'neon-purple'
-  },
-  {
-    icon: Brain,
-    label: 'Skills Extracted',
-    value: '12',
-    change: '+3 from resume',
-    trend: 'up',
-    color: 'neon-green'
-  },
-  {
-    icon: Award,
-    label: 'Profile Complete',
-    value: '92%',
-    change: '8% to complete',
-    trend: 'up',
-    color: 'neon-pink'
-  }
-];
-
 export function UserDashboardPage() {
-  const userSkills = ['Python', 'Web Development', 'AI/ML', 'React', 'Node.js', 'Data Science'];
-  const [events, setEvents] = useState([]);
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('inter-events');
+  const [interEvents, setInterEvents] = useState([]);
+  const [intraEvents, setIntraEvents] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [joiningOrganization, setJoiningOrganization] = useState(null);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const response = await eventAPI.getEvents({ limit: 6 });
-        if (response.data && response.data.events) {
-          setEvents(response.data.events);
-        }
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
+    fetchData();
   }, []);
 
-  const handleRegister = async (event) => {
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch inter events (public events)
+      const interResponse = await eventAPI.getInterEvents();
+      if (interResponse.data?.events) {
+        setInterEvents(interResponse.data.events);
+      }
+
+      // Fetch organizations
+      const orgResponse = await organizationAPI.getOrganizations();
+      if (orgResponse.data?.organizations) {
+        setOrganizations(orgResponse.data.organizations);
+      }
+
+      // Fetch intra events for organizations user is a member of
+      const intraResponse = await eventAPI.getIntraEvents();
+      if (intraResponse.data?.events) {
+        setIntraEvents(intraResponse.data.events);
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJoinRequest = async (organizationId) => {
+    try {
+      setJoiningOrganization(organizationId);
+      await organizationAPI.sendJoinRequest(organizationId);
+      alert('Join request sent successfully!');
+      // Update the organization status in the list
+      setOrganizations(prev => prev.map(org => 
+        org._id === organizationId 
+          ? { ...org, joinRequestStatus: 'PENDING' }
+          : org
+      ));
+    } catch (error) {
+      console.error('Error sending join request:', error);
+      alert('Failed to send join request. Please try again.');
+    } finally {
+      setJoiningOrganization(null);
+    }
+  };
+
+  const handleEventRegistration = async (event) => {
     try {
       await eventAPI.registerForEvent(event._id);
       alert(`Successfully registered for ${event.title}`);
-      // Optionally, update the event's state to reflect registration
-      setEvents(prevEvents => prevEvents.map(e => 
-        e._id === event._id ? { ...e, isRegistered: true } : e
-      ));
     } catch (error) {
       console.error('Error registering for event:', error);
-      alert(`Failed to register for ${event.title}. Please try again.`);
+      alert('Failed to register for event. Please try again.');
     }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-cyan"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -144,7 +162,7 @@ export function UserDashboardPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
         >
-          Welcome back! 👋
+          Welcome back, {user?.name}! 👋
         </motion.h1>
         <motion.p 
           className="page-subtitle"
@@ -152,150 +170,307 @@ export function UserDashboardPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          Here are your personalized event recommendations and skill insights
+          Discover events and organizations that match your interests
         </motion.p>
       </motion.div>
 
-      {/* User Stats Grid */}
+      {/* Quick Stats */}
       <motion.div 
-        className="dashboard-grid"
+        className="grid grid-cols-1 md:grid-cols-4 gap-6"
         variants={itemVariants}
       >
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            className="dashboard-card"
-            variants={cardVariants}
-            whileHover="hover"
-          >
-            <div className="dashboard-card-header">
-              <h3 className="dashboard-card-title">{stat.label}</h3>
-              <stat.icon className={`dashboard-card-icon text-${stat.color}`} />
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Inter Events</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{interEvents.length}</p>
             </div>
-            <div className="dashboard-card-value">{stat.value}</div>
-            <div className={`dashboard-card-trend trend-${stat.trend}`}>
-              <TrendingUp className="w-4 h-4" />
-              <span>{stat.change}</span>
+            <Calendar className="h-8 w-8 text-blue-600" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Intra Events</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{intraEvents.length}</p>
             </div>
-          </motion.div>
-        ))}
+            <Users className="h-8 w-8 text-purple-600" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Organizations</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{organizations.length}</p>
+            </div>
+            <Target className="h-8 w-8 text-green-600" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Member Orgs</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {user?.joinedOrganizations?.length || 0}
+              </p>
+            </div>
+            <Award className="h-8 w-8 text-yellow-600" />
+          </div>
+        </div>
       </motion.div>
 
-      {/* Skills Section */}
-      <motion.section variants={itemVariants}>
-        <div className="section-header mb-6">
-          <div>
-            <h2 className="section-title">Your Skills & Expertise</h2>
-            <p className="section-description">
-              AI-extracted skills from your profile and resume
-            </p>
-          </div>
-          <motion.div
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-neon-cyan/20 to-neon-purple/20 border border-neon-cyan/30 rounded-xl"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Brain className="w-5 h-5 text-neon-cyan" />
-            <span className="text-sm font-medium text-text-primary">AI Powered</span>
-          </motion.div>
-        </div>
-        
-        <div className="flex flex-wrap gap-3">
-          {userSkills.map((skill, index) => (
-            <motion.span
-              key={skill}
-              className="px-4 py-2 bg-bg-glass border border-border-primary rounded-xl text-sm font-medium text-text-primary hover:border-neon-cyan/50 transition-colors"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.05, y: -2 }}
-            >
-              {skill}
-            </motion.span>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* Recommended Events */}
-      <motion.section variants={itemVariants}>
-        <div className="section-header mb-6">
-          <div>
-            <h2 className="section-title flex items-center gap-2">
-              <Star className="w-6 h-6 text-neon-cyan" />
-              Recommended for You
-            </h2>
-            <p className="section-description">
-              Events tailored to your skills and interests
-            </p>
-          </div>
-          <motion.div
-            className="flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-xs font-medium text-neon-cyan"
-            animate={{ 
-              boxShadow: [
-                '0 0 10px rgba(0, 255, 255, 0.2)',
-                '0 0 20px rgba(0, 255, 255, 0.4)',
-                '0 0 10px rgba(0, 255, 255, 0.2)'
-              ]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <Target className="w-3 h-3" />
-            <span>AI Matched</span>
-          </motion.div>
-        </div>
-        
-        <div className="events-grid">
-          {events.map((event, index) => (
-            <motion.div
-              key={event._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <EventCard
-                event={event}
-                isRegistered={event.isRegistered}
-                onRegister={handleRegister}
-                matchScore={Math.floor(Math.random() * 30) + 70} // Random score 70-100
-              />
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* Quick Actions */}
-      <motion.section 
-        className="mt-12 p-6 bg-gradient-to-br from-bg-glass to-bg-secondary border border-border-primary rounded-2xl"
+      {/* Navigation Tabs */}
+      <motion.div 
+        className="border-b border-gray-200 dark:border-gray-700"
         variants={itemVariants}
       >
-        <div className="flex flex-col md:flex-row items-center justify-between">
-          <div className="text-center md:text-left mb-4 md:mb-0">
-            <h3 className="text-xl font-semibold text-text-primary mb-2">
-              Ready to discover more?
-            </h3>
-            <p className="text-text-secondary">
-              Explore all events or update your profile for better recommendations
-            </p>
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('inter-events')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'inter-events'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            <Eye className="inline-block w-4 h-4 mr-2" />
+            Public Events (Inter)
+          </button>
+          <button
+            onClick={() => setActiveTab('organizations')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'organizations'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            <UserPlus className="inline-block w-4 h-4 mr-2" />
+            Organizations
+          </button>
+          <button
+            onClick={() => setActiveTab('intra-events')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'intra-events'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            <Users className="inline-block w-4 h-4 mr-2" />
+            My Organization Events (Intra)
+          </button>
+        </nav>
+      </motion.div>
+
+      {/* Tab Content */}
+      <motion.div variants={itemVariants}>
+        {/* Inter Events Tab */}
+        {activeTab === 'inter-events' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Public Events from All Organizations
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {interEvents.length > 0 ? (
+                interEvents.map((event) => (
+                  <div key={event._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div className="p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        {event.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                        {event.description}
+                      </p>
+                      
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          {formatDate(event.date)} at {formatTime(event.date)}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                          <MapPin className="w-4 h-4 mr-2" />
+                          {event.location}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                          <Users className="w-4 h-4 mr-2" />
+                          {event.organizer?.name || 'Organization Event'}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          {event.type}
+                        </span>
+                        <button
+                          onClick={() => handleEventRegistration(event)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                        >
+                          Register
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <Calendar className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No inter events</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    There are no public events available at the moment.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex gap-3">
-            <motion.button
-              className="btn btn-primary"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <BookOpen className="w-4 h-4" />
-              Browse All Events
-            </motion.button>
-            <motion.button
-              className="btn btn-secondary"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Users className="w-4 h-4" />
-              Update Profile
-            </motion.button>
+        )}
+
+        {/* Organizations Tab */}
+        {activeTab === 'organizations' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Available Organizations
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {organizations.length > 0 ? (
+                organizations.map((org) => {
+                  const isMember = user?.joinedOrganizations?.includes(org._id);
+                  const hasPendingRequest = org.joinRequestStatus === 'PENDING';
+                  
+                  return (
+                    <div key={org._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                      <div className="p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                          {org.name}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                          {org.description}
+                        </p>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <Users className="w-4 h-4 mr-2" />
+                            {org.members?.length || 0} members
+                          </div>
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <Target className="w-4 h-4 mr-2" />
+                            {org.type}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          {isMember ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              Member
+                            </span>
+                          ) : hasPendingRequest ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Pending
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleJoinRequest(org._id)}
+                              disabled={joiningOrganization === org._id}
+                              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center"
+                            >
+                              {joiningOrganization === org._id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              ) : (
+                                <UserPlus className="w-4 h-4 mr-2" />
+                              )}
+                              Join Organization
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <Users className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No organizations</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    There are no organizations available at the moment.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </motion.section>
+        )}
+
+        {/* Intra Events Tab */}
+        {activeTab === 'intra-events' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Private Events from Your Organizations
+            </h2>
+            {user?.joinedOrganizations?.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <Users className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No organization memberships</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Join an organization to access private (intra) events.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {intraEvents.length > 0 ? (
+                  intraEvents.map((event) => (
+                    <div key={event._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                      <div className="p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                          {event.title}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                          {event.description}
+                        </p>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            {formatDate(event.date)} at {formatTime(event.date)}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <MapPin className="w-4 h-4 mr-2" />
+                            {event.location}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <Users className="w-4 h-4 mr-2" />
+                            {event.organization?.name}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                            {event.type}
+                          </span>
+                          <button
+                            onClick={() => handleEventRegistration(event)}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                          >
+                            Register
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <Calendar className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No intra events</h3>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      There are no private events available for your organizations.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </motion.div>
     </motion.div>
   );
 }
