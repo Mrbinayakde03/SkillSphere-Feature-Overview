@@ -17,13 +17,33 @@ export function CreateEventModal({ onClose, onCreate, college }) {
     registrationDeadline: '',
   });
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Convert form data to match backend API format
     const event = {
-      ...formData,
-      college,
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      date: formData.date,
+      time: formData.time,
+      location: formData.location,
+      maxParticipants: formData.maxParticipants,
+      registrationDeadline: formData.registrationDeadline,
+      skills: formData.skills,
+      college: college,
+      type: 'inter', // Default to inter-event
       status: 'upcoming',
+      visibility: 'public',
+      organizer: {
+        name: formData.organizer,
+        college: college
+      },
+      eligibility: {
+        years: formData.eligibility,
+        skills: formData.skills
+      }
     };
     
     onCreate(event);

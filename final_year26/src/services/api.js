@@ -1,7 +1,8 @@
+ t// API Configuration
 // API Configuration
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://your-production-api.com' 
-  : 'http://localhost:5000/api';
+  : 'http://localhost:5001/api';
 
 
 // Mock data for development
@@ -107,12 +108,57 @@ const makeRequest = async (endpoint, options = {}) => {
   }
 };
 
+
 // Authentication API
 export const authAPI = {
-  register: (userData) => makeRequest('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(userData)
-  }),
+
+  register: async (userData) => {
+    try {
+      // Map frontend fields to backend format with proper defaults
+      const backendData = {
+        fullName: userData.fullName || userData.name || '',
+        email: userData.email || '',
+        password: userData.password || '',
+        role: userData.role || 'student',
+        college: userData.college || null,
+        year: userData.year || null,
+        skills: userData.skills || [],
+        educationLevel: userData.educationLevel || null,
+        interests: userData.interests || [],
+        organizationName: userData.organizationName || null,
+        organizationType: userData.organizationType || null,
+        organizationDescription: userData.organizationDescription || null,
+        officialEmailDomain: userData.officialEmailDomain || null
+      };
+
+      console.log('Frontend registration data:', userData);
+      console.log('Backend registration data:', backendData);
+
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(backendData),
+      });
+
+      const data = await response.json();
+      console.log('Registration response:', data);
+
+      if (response.ok && data.success) {
+        // Store the token and user data
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        
+        return data;
+      } else {
+        throw new Error(data.message || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  },
 
   login: (credentials) => makeRequest('/auth/login', {
     method: 'POST',

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Calendar, 
@@ -12,7 +12,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { EventCard, EventCard3D } from '../../components/EventCard3D';
-import { mockEvents } from '../../data/mockData';
+import { eventAPI } from '../../services/api';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -83,11 +83,48 @@ const stats = [
 
 export function UserDashboardPage() {
   const userSkills = ['Python', 'Web Development', 'AI/ML', 'React', 'Node.js', 'Data Science'];
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleRegister = (event) => {
-    console.log('Registering for event:', event.title);
-    // Here you would typically call an API to register the user
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await eventAPI.getEvents({ limit: 6 });
+        if (response.data && response.data.events) {
+          setEvents(response.data.events);
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const handleRegister = async (event) => {
+    try {
+      await eventAPI.registerForEvent(event._id);
+      alert(`Successfully registered for ${event.title}`);
+      // Optionally, update the event's state to reflect registration
+      setEvents(prevEvents => prevEvents.map(e => 
+        e._id === event._id ? { ...e, isRegistered: true } : e
+      ));
+    } catch (error) {
+      console.error('Error registering for event:', error);
+      alert(`Failed to register for ${event.title}. Please try again.`);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-cyan"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div 
@@ -207,16 +244,16 @@ export function UserDashboardPage() {
         </div>
         
         <div className="events-grid">
-          {mockEvents.slice(0, 6).map((event, index) => (
+          {events.map((event, index) => (
             <motion.div
-              key={event.id}
+              key={event._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
               <EventCard
                 event={event}
-                isRegistered={Math.random() > 0.7} // Random registration for demo
+                isRegistered={event.isRegistered}
                 onRegister={handleRegister}
                 matchScore={Math.floor(Math.random() * 30) + 70} // Random score 70-100
               />

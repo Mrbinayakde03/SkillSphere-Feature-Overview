@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Calendar, 
@@ -11,21 +12,46 @@ import {
 } from 'lucide-react';
 
 import { UserLayout } from '../layouts/UserLayout';
-import { mockEvents } from '../data/mockData';
+import { eventAPI } from '../services/api';
+import { EventCard } from '../components/EventCard';
+
 
 const HomePage = () => {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedCategory, setSelectedCategory] = React.useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filter events based on search and category
-  const filteredEvents = mockEvents.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
+  useEffect(() => {
+    fetchEvents();
+  }, [selectedCategory]);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const params = {};
+      
+      if (selectedCategory !== 'All') {
+        params.category = selectedCategory;
+      }
+      
+      const response = await eventAPI.getEvents(params);
+      setEvents(response.data.events || []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter events based on search
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         event.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         event.skills?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    const matchesCategory = selectedCategory === 'All' || event.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   const categories = ['All', 'Workshop', 'Hackathon', 'Seminar', 'Competition', 'Career Fair', 'Networking'];
@@ -113,107 +139,41 @@ const HomePage = () => {
               </p>
             </motion.div>
 
+
             {/* Events Grid */}
-            <div className="events-grid">
-              {filteredEvents.map((event, index) => (
-                <motion.div 
-                  key={event.id}
-                  className="event-card"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.02 }}
-                >
-                  {/* Event Header */}
-                  <div className="event-header">
-                    <div className="event-meta-top">
-                      <span className="event-category">
-                        {event.category}
-                      </span>
-                      <span className="event-participants">
-                        {event.currentParticipants}/{event.maxParticipants} participants
-                      </span>
-                    </div>
-                    
-                    <h3 className="event-title">
-                      {event.title}
-                    </h3>
-                    
-                    <p className="event-description">
-                      {event.description}
-                    </p>
-                  </div>
-
-                  {/* Event Details */}
-                  <div className="event-details">
-                    <div className="event-detail-item">
-                      <Calendar className="event-detail-icon" />
-                      <span>{new Date(event.date).toLocaleDateString()}</span>
-                      <Clock className="event-detail-icon" />
-                      <span>{event.time}</span>
-                    </div>
-                    
-                    <div className="event-detail-item">
-                      <MapPin className="event-detail-icon" />
-                      <span>{event.location}</span>
-                    </div>
-                    
-                    <div className="event-detail-item">
-                      <Users className="event-detail-icon" />
-                      <span>{event.organizer}</span>
-                    </div>
-                  </div>
-
-                  {/* Skills Tags */}
-                  <div className="event-tags">
-                    <div className="event-tags-container">
-                      {event.skills.slice(0, 3).map((skill, skillIndex) => (
-                        <span 
-                          key={skillIndex}
-                          className="event-tag"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {event.skills.length > 3 && (
-                        <span className="event-tag">
-                          +{event.skills.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Registration Button */}
-                  <div className="event-actions">
-                    <motion.button 
-                      onClick={() => handleRegister(event.id)}
-                      className="register-button"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Register for Event
-                      <ArrowRight className="register-icon" />
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* No Events Found */}
-            {filteredEvents.length === 0 && (
-              <motion.div 
-                className="no-events-found"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6 }}
-              >
-                <div className="no-events-icon">
-                  <Search className="no-events-search-icon" />
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : filteredEvents.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredEvents.map((event, index) => (
+                  <motion.div
+                    key={event._id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                  >
+                    <EventCard 
+                      event={event} 
+                      onRegister={() => handleRegister(event._id)}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <Calendar className="w-16 h-16 mx-auto" />
                 </div>
-                <h3 className="no-events-title">No events found</h3>
-                <p className="no-events-description">Try adjusting your search or filter criteria</p>
-              </motion.div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
+                <p className="text-gray-600">
+                  {searchQuery ? 'Try adjusting your search criteria' : 'No events available in this category'}
+                </p>
+              </div>
             )}
+
+
           </div>
         </section>
       </div>

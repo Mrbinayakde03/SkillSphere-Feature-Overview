@@ -1,8 +1,11 @@
 import { Calendar, Clock, MapPin, Users, CheckCircle2, Award } from 'lucide-react';
 
-export function EventCard({ event, isRegistered, onRegister, matchScore }) {
-  const spotsLeft = event.maxParticipants - event.currentParticipants;
-  const percentFull = (event.currentParticipants / event.maxParticipants) * 100;
+
+export function EventCard({ event, isRegistered, onRegister, matchScore, showActions = false }) {
+  // Handle MongoDB _id vs id
+  const eventId = event._id || event.id;
+  const spotsLeft = (event.maxParticipants || 0) - (event.currentParticipants || 0);
+  const percentFull = event.maxParticipants > 0 ? ((event.currentParticipants || 0) / event.maxParticipants) * 100 : 0;
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -99,15 +102,16 @@ export function EventCard({ event, isRegistered, onRegister, matchScore }) {
           </div>
         </div>
 
+
         <button
-          onClick={() => onRegister(event.id)}
+          onClick={() => onRegister(eventId)}
           className={`w-full py-3 rounded-lg font-medium transition-all ${
             isRegistered
               ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-text-primary hover:shadow-lg'
+              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg'
           }`}
         >
-          {isRegistered ? 'Unregister' : 'Register Now'}
+          {showActions ? 'Manage' : (isRegistered ? 'Unregister' : 'Register Now')}
         </button>
       </div>
     </div>
